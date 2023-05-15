@@ -55,7 +55,7 @@ router.post("/:id", verifyToken, async (req, res) => {
     const rowValues = [user_id, match_id];
     const [rows] = await pool.execute(rowCheckingQuery, rowValues);
 
-    if (rows.length >= 0) {
+    if (rows.length > 0) {
       return res.status(404).json({ message: "Bet already registerd. please refresh page and edit bet" });
     }
     // Validate the request body data here (e.g., user authentication, input validation)

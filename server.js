@@ -1,6 +1,9 @@
 const express = require('express');
 const app = express();
+cors = require('cors')
+
 app.use(express.json());
+app.use(cors());
 
 const moment = require('moment');
 require('moment-timezone');

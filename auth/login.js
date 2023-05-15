@@ -5,7 +5,8 @@ const { generateToken } = require('./token');
 
 function validatePassword(password) {
   // Password validation logic goes here
-  if(!password || password?.length <8) return false
+  console.log(password, !password);
+  if(!password || password?.length <1) return false
   return true;
 }
 
@@ -19,12 +20,12 @@ function validateEmail(email) {
 router.post('/', async (req, res) => {
   const {email, password } = req.body;
   if (!validateEmail(email)) {
-    res.status(400).json({ message: 'Invalid email format' });
+    res.status(422).json({ message: 'Invalid email format' });
     return;
   }
 
   if (!validatePassword(password)) {
-    res.status(400).json({ message: 'Invalid password' });
+    res.status(422).json({ message: 'Invalid password' });
     return;
   }
   try {
@@ -38,6 +39,7 @@ router.post('/', async (req, res) => {
         // Generate a JWT token with the user ID and email
         const token = generateToken({ id: user.id, email: user.email });
         res.json({ 
+          "id" : user.id,
           "name":user.name,
           "email":user.email,
           token });
@@ -45,7 +47,7 @@ router.post('/', async (req, res) => {
         res.status(401).json({ message: 'Invalid credentials' });
       }
     } else {
-      res.status(401).json({ message: 'Invalid email' });
+      res.status(404).json({ message: 'Invalid email' });
     }
   } catch (error) {
     console.error('Error executing query', error);
