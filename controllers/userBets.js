@@ -153,7 +153,6 @@ router.put("/:id", verifyToken, async (req, res) => {
     ];
     // Update the user bet in the database
     const query = `UPDATE user_bets SET ${query_fields} WHERE user_id = ? AND match_id = ?`;
-    console.log(query);
     await pool.execute(query, values);
 
     res.json({ message: "User bet updated successfully" });

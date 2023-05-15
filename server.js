@@ -7,7 +7,7 @@ app.use(cors());
 
 const moment = require('moment');
 require('moment-timezone');
-
+const config = require('./config');
 // Set the default timezone to West African Time (Africa/Lagos)
 moment.tz.setDefault('Africa/Lagos');
 
@@ -23,7 +23,7 @@ app.use('/userbets', userBetsRoutes);
 
 
 // Start the server
-const port = 3000;
+const port = config.server_port;
 app.listen(port, () => {
   console.log(`Server listening on port ${port}`);
 });

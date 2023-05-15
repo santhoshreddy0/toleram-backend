@@ -3,7 +3,7 @@ const router = express.Router();
 const pool = require('../db');
 const { verifyToken } = require("../middleware/middleware");
 
-router.get("/", verifyToken, async (req, res) => {
+router.get("/", async (req, res) => {
   try {
     // Retrieve all available matches from the matches table
     const query = "SELECT * FROM matches";

@@ -5,7 +5,6 @@ const { generateToken } = require('./token');
 
 function validatePassword(password) {
   // Password validation logic goes here
-  console.log(password, !password);
   if(!password || password?.length <1) return false
   return true;
 }
