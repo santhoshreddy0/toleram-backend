@@ -50,3 +50,43 @@ CREATE TABLE user_bets (
   team_two_fs VARCHAR(255) DEFAULT NULL,
   team_two_fs_bet INT DEFAULT NULL
 );
+
+
+
+CREATE TABLE tounament_bets (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  sixes VARCHAR(255) DEFAULT NULL,
+  sixes_bet INT DEFAULT NULL,
+  female_player VARCHAR(255) DEFAULT NULL,
+  female_player_bet INT DEFAULT NULL,
+  most_runs VARCHAR(255) DEFAULT NULL,
+  most_runs_bet INT DEFAULT NULL,
+  most_wickets VARCHAR(255) DEFAULT NULL,
+  most_wickets_bet INT DEFAULT NULL
+);
+
+CREATE TABLE winners (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  team VARCHAR(255) DEFAULT NULL,
+  round VARCHAR(255) DEFAULT NULL
+);
+
+CREATE TABLE time_channel (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
+  start_time DATETIME NOT NULL,
+  status enum('0','1') DEFAULT '1',
+  odds VARCHAR(500) DEFAULT ""
+);
+
+INSERT INTO `time_channel`(`name`, `start_time`,`status`, `odds`) VALUES 
+('round_one', '2023-05-18 08:00:00' , '1',"odds1"),
+('eliminators', '2023-05-18 08:00:00' , '0', "odds elim"),
+('semi_finals', '2023-05-18 08:00:00' , '0', "odds semis"),
+('finals', '2023-05-18 08:00:00' , '0', "odds finals");
+
+-- match add
+-- match time update
+-- round time (to add winners table)
