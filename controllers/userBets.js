@@ -4,36 +4,28 @@ const { verifyToken } = require("../middleware/middleware");
 
 const pool = require("../db");
 
-function validateWhoWins(who_wins) {
-  // Password validation logic goes here
-  if (!who_wins) return false;
-  return true;
-}
-
-function validateBetAmount(bet_amount) {
-  // Email validation logic goes here
-  if (!bet_amount || bet_amount <= 0) return false;
-  return true;
-}
-
 // Endpoint to create a new user bet
 router.post("/:id", verifyToken, async (req, res) => {
   try {
     const { id: match_id } = req.params;
     const user_id = req.user.id;
     const {
-      who_wins,
-      who_wins_bet,
-      who_wins_toss,
-      who_wins_toss_bet,
-      most_runs_male,
-      most_runs_male_bet,
-      best_female_player,
-      best_female_player_bet,
-      first_inn_score,
-      first_inn_score_bet,
-      max_sixes,
-      max_sixes_bet,
+      wins,
+      wins_bet,
+      toss,
+      toss_bet,
+      sixes,
+      sixes_bet,
+      female_player,
+      female_player_bet,
+      most_runs,
+      most_runs_bet,
+      most_wickets,
+      most_wickets_bet,
+      team_one_fs,
+      team_one_fs_bet,
+      team_two_fs,
+      team_two_fs_bet,
     } = req.body;
 
     // Check if the match start time has passed
@@ -56,27 +48,35 @@ router.post("/:id", verifyToken, async (req, res) => {
     const [rows] = await pool.execute(rowCheckingQuery, rowValues);
 
     if (rows.length > 0) {
-      return res.status(404).json({ message: "Bet already registerd. please refresh page and edit bet" });
+      return res
+        .status(404)
+        .json({
+          message: "Bet already registerd. please refresh page and edit bet",
+        });
     }
     // Validate the request body data here (e.g., user authentication, input validation)
     let query_fields =
-      "user_id, match_id, who_wins, who_wins_bet, who_wins_toss , who_wins_toss_bet,most_runs_male, most_runs_male_bet, best_female_player , best_female_player_bet, first_inn_score , first_inn_score_bet, max_sixes , max_sixes_bet";
-    let query_values = "?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?";
+      "user_id, match_id, wins, wins_bet, toss, toss_bet, sixes, sixes_bet, female_player, female_player_bet, most_runs, most_runs_bet, most_wickets, most_wickets_bet, team_one_fs, team_one_fs_bet, team_two_fs, team_two_fs_bet";
+    let query_values = "?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?";
     let values = [
       user_id,
       match_id,
-      who_wins ? who_wins : "" ,
-      parseInt(who_wins_bet) ? parseInt(who_wins_bet) : 0 ,
-      who_wins_toss ? who_wins_toss : "" ,
-      parseInt(who_wins_toss_bet) ? parseInt(who_wins_toss_bet) : 0 ,
-      most_runs_male ? most_runs_male : "" ,
-      parseInt(most_runs_male_bet) ? parseInt(most_runs_male_bet) : 0 ,
-      best_female_player ? best_female_player : "" ,
-      parseInt(best_female_player_bet) ? parseInt(best_female_player_bet) : 0 ,
-      first_inn_score ? first_inn_score : "" ,
-      parseInt(first_inn_score_bet) ? parseInt(first_inn_score_bet) : 0 ,
-      max_sixes ? max_sixes : "" ,
-      parseInt(max_sixes_bet) ? parseInt(max_sixes_bet) : 0 ,
+      wins ? wins : "",
+      parseInt(wins_bet) ? parseInt(wins_bet) : 0,
+      toss ? toss : "",
+      parseInt(toss_bet) ? parseInt(toss_bet) : 0,
+      sixes ? sixes : "",
+      parseInt(sixes_bet) ? parseInt(sixes_bet) : 0,
+      female_player ? female_player : "",
+      parseInt(female_player_bet) ? parseInt(female_player_bet) : 0,
+      most_runs ? most_runs : "",
+      parseInt(most_runs_bet) ? parseInt(most_runs_bet) : 0,
+      most_wickets ? most_wickets : "",
+      parseInt(most_wickets_bet) ? parseInt(most_wickets_bet) : 0,
+      team_one_fs ? team_one_fs : "",
+      parseInt(team_one_fs_bet) ? parseInt(team_one_fs_bet) : 0,
+      team_two_fs ? team_two_fs : "",
+      parseInt(team_two_fs_bet) ? parseInt(team_two_fs_bet) : 0
     ];
     // Insert the user bet into the database
     const query = `INSERT INTO user_bets (${query_fields}) VALUES (${query_values})`;
@@ -96,18 +96,22 @@ router.put("/:id", verifyToken, async (req, res) => {
     const { id: match_id } = req.params;
     const user_id = req.user.id;
     const {
-      who_wins,
-      who_wins_bet,
-      who_wins_toss,
-      who_wins_toss_bet,
-      most_runs_male,
-      most_runs_male_bet,
-      best_female_player,
-      best_female_player_bet,
-      first_inn_score,
-      first_inn_score_bet,
-      max_sixes,
-      max_sixes_bet,
+      wins,
+      wins_bet,
+      toss,
+      toss_bet,
+      sixes,
+      sixes_bet,
+      female_player,
+      female_player_bet,
+      most_runs,
+      most_runs_bet,
+      most_wickets,
+      most_wickets_bet,
+      team_one_fs,
+      team_one_fs_bet,
+      team_two_fs,
+      team_two_fs_bet
     } = req.body;
 
     // Check if the match start time has passed
@@ -134,22 +138,26 @@ router.put("/:id", verifyToken, async (req, res) => {
     }
     // Validate the request body data here (e.g., user authentication, input validation)
     let query_fields =
-      "who_wins = ?, who_wins_bet = ?, who_wins_toss = ? , who_wins_toss_bet = ? , most_runs_male = ?, most_runs_male_bet = ?, best_female_player = ? , best_female_player_bet = ?, first_inn_score = ? , first_inn_score_bet = ?, max_sixes = ? , max_sixes_bet = ? ";
+      "wins = ?, wins_bet = ?, toss = ?, toss_bet = ?, sixes = ?, sixes_bet = ?, female_player = ?, female_player_bet = ?, most_runs = ?, most_runs_bet = ?, most_wickets = ?, most_wickets_bet = ?, team_one_fs = ?, team_one_fs_bet = ?, team_two_fs = ?, team_two_fs_bet = ?";
     let values = [
-      who_wins ? who_wins : "" ,
-      parseInt(who_wins_bet) ? parseInt(who_wins_bet) : 0 ,
-      who_wins_toss ? who_wins_toss : "" ,
-      parseInt(who_wins_toss_bet) ? parseInt(who_wins_toss_bet) : 0 ,
-      most_runs_male ? most_runs_male : "" ,
-      parseInt(most_runs_male_bet) ? parseInt(most_runs_male_bet) : 0 ,
-      best_female_player ? best_female_player : "" ,
-      parseInt(best_female_player_bet) ? parseInt(best_female_player_bet) : 0 ,
-      first_inn_score ? first_inn_score : "" ,
-      parseInt(first_inn_score_bet) ? parseInt(first_inn_score_bet) : 0 ,
-      max_sixes ? max_sixes : "" ,
-      parseInt(max_sixes_bet) ? parseInt(max_sixes_bet) : 0 ,
-      user_id ,
-      match_id 
+      wins ? wins : "",
+      parseInt(wins_bet) ? parseInt(wins_bet) : 0,
+      toss ? toss : "",
+      parseInt(toss_bet) ? parseInt(toss_bet) : 0,
+      sixes ? sixes : "",
+      parseInt(sixes_bet) ? parseInt(sixes_bet) : 0,
+      female_player ? female_player : "",
+      parseInt(female_player_bet) ? parseInt(female_player_bet) : 0,
+      most_runs ? most_runs : "",
+      parseInt(most_runs_bet) ? parseInt(most_runs_bet) : 0,
+      most_wickets ? most_wickets : "",
+      parseInt(most_wickets_bet) ? parseInt(most_wickets_bet) : 0,
+      team_one_fs ? team_one_fs : "",
+      parseInt(team_one_fs_bet) ? parseInt(team_one_fs_bet) : 0,
+      team_two_fs ? team_two_fs : "",
+      parseInt(team_two_fs_bet) ? parseInt(team_two_fs_bet) : 0,
+      user_id,
+      match_id,
     ];
     // Update the user bet in the database
     const query = `UPDATE user_bets SET ${query_fields} WHERE user_id = ? AND match_id = ?`;
