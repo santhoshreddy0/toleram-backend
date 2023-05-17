@@ -12,14 +12,16 @@ router.put("/", verifyToken, async (req, res) => {
     const {
         start_time,
         status,
-        id
+        id,
+        odds
     } = req.body;
 
     let query_fields =
-      "start_time = ?, status = ?";
+      "start_time = ?, status = ?, odds = ?";
     let values = [
         start_time ,
         status,
+        odds,
         id
     ];
     // Update the user bet in the database
