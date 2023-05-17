@@ -3,7 +3,7 @@ const router = express.Router();
 const { verifyToken } = require("../middleware/middleware");
 
 const pool = require("../db");
-
+const moment = require('moment');
 // Endpoint to create a new user bet
 router.post("/:id", verifyToken, async (req, res) => {
   try {
@@ -35,8 +35,8 @@ router.post("/:id", verifyToken, async (req, res) => {
 
     const matchStartTime = matchRows[0].match_start_time;
     const currentTime = new Date();
-
-    if (currentTime >= matchStartTime) {
+    
+    if (moment(currentTime)>=moment(matchStartTime)) {
       return res.status(400).json({
         message: "Bets can only be placed before the match start time",
       });
@@ -122,7 +122,7 @@ router.put("/:id", verifyToken, async (req, res) => {
     const matchStartTime = matchRows[0].match_start_time;
     const currentTime = new Date();
 
-    if (currentTime >= matchStartTime) {
+    if (moment(currentTime)>=moment(matchStartTime)) {
       return res.status(400).json({
         message: "Bets can only be placed before the match start time",
       });

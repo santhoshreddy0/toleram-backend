@@ -3,14 +3,15 @@ const router = express.Router();
 const { verifyToken } = require("../middleware/middleware");
 
 const pool = require("../db");
-
+const moment = require('moment');
 // Endpoint to create a new user bet
 router.post("/:id", verifyToken, async (req, res) => {
   try {
     const { id: round } = req.params;
     const user_id = req.user.id;
     const {
-      team
+      team,
+      bet
     } = req.body;
 
     // Check if the match start time has passed
@@ -20,8 +21,8 @@ router.post("/:id", verifyToken, async (req, res) => {
 
     const startTime = tournamentRows[0].start_time;
     const currentTime = new Date();
-
-    if (currentTime >= startTime) {
+    console.log(moment(currentTime)>=moment(startTime));
+    if (moment(currentTime)>=moment(startTime)) {
       return res.status(400).json({
         message: "Bets can only be placed before the round start time",
       });
@@ -41,12 +42,13 @@ router.post("/:id", verifyToken, async (req, res) => {
     }
     // Validate the request body data here (e.g., user authentication, input validation)
     let query_fields =
-      "user_id, round, team";
-    let query_values = "?, ?, ?";
+      "user_id, round, team, bet";
+    let query_values = "?, ?, ?, ?";
     let values = [
       user_id,
       round ? round : "",
       team ? team : "",
+      bet ? bet : 0
     ];
     // Insert the user bet into the database
     const query = `INSERT INTO winners (${query_fields}) VALUES (${query_values})`;
@@ -66,7 +68,8 @@ router.put("/:id", verifyToken, async (req, res) => {
     const { id: round } = req.params;
     const user_id = req.user.id;
     const {
-        team
+        team,
+        bet
     } = req.body;
 
     // Check if the match start time has passed
@@ -76,8 +79,8 @@ router.put("/:id", verifyToken, async (req, res) => {
 
     const startTime = tournamentRows[0].start_time;
     const currentTime = new Date();
-
-    if (currentTime >= startTime) {
+    console.log(moment(currentTime)>=moment(startTime),moment(currentTime).format("MMMM Do, h:mm a"),moment(startTime).format("MMMM Do, h:mm a"));
+    if (moment(currentTime)>=moment(startTime)) {
       return res.status(400).json({
         message: "Bets can only be placed before the round start time",
       });
@@ -93,9 +96,10 @@ router.put("/:id", verifyToken, async (req, res) => {
     }
     // Validate the request body data here (e.g., user authentication, input validation)
     let query_fields =
-      "team = ?";
+      "team = ?, bet = ?";
     let values = [
         team ? team : "",
+        bet ? bet : 0,
         user_id,
         round
     ];
