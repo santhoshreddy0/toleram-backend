@@ -19,7 +19,7 @@ function validateEmail(email) {
 router.post('/', async (req, res) => {
   const {email, password } = req.body;
   if (!validateEmail(email)) {
-    res.status(422).json({ message: 'Invalid email format' });
+    res.status(422).json({ message: 'Invalid user name' });
     return;
   }
 
@@ -46,7 +46,7 @@ router.post('/', async (req, res) => {
         res.status(401).json({ message: 'Invalid credentials' });
       }
     } else {
-      res.status(404).json({ message: 'Invalid email' });
+      res.status(404).json({ message: 'Invalid user name' });
     }
   } catch (error) {
     console.error('Error executing query', error);
