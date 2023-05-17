@@ -21,7 +21,6 @@ router.post("/:id", verifyToken, async (req, res) => {
 
     const startTime = tournamentRows[0].start_time;
     const currentTime = new Date();
-    console.log(moment(currentTime)>=moment(startTime));
     if (moment(currentTime)>=moment(startTime)) {
       return res.status(400).json({
         message: "Bets can only be placed before the round start time",
@@ -79,7 +78,6 @@ router.put("/:id", verifyToken, async (req, res) => {
 
     const startTime = tournamentRows[0].start_time;
     const currentTime = new Date();
-    console.log(moment(currentTime)>=moment(startTime),moment(currentTime).format("MMMM Do, h:mm a"),moment(startTime).format("MMMM Do, h:mm a"));
     if (moment(currentTime)>=moment(startTime)) {
       return res.status(400).json({
         message: "Bets can only be placed before the round start time",
