@@ -1,11 +1,13 @@
-const mysql = require('mysql2');
+const mysql = require("mysql2");
 
 // Create a MariaDB connection pool
-const pool = mysql.createPool({
-  host: 'localhost',
-  user: 'root',
-  password: 'password',
-  database: 'tolaram'
-});
+dbConfig = {
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: process.env.DB_PWD,
+    database: process.env.DB_NAME,
+};
+
+const pool = mysql.createPool(dbConfig);
 
 module.exports = pool.promise();

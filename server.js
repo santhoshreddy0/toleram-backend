@@ -1,6 +1,7 @@
 const express = require('express');
 const app = express();
 cors = require('cors')
+require('dotenv').config()
 
 app.use(express.json());
 app.use(cors());
@@ -29,7 +30,8 @@ app.use('/rounds', roundsRoutes);
 
 
 // Start the server
-const port = config.server_port;
+const port = process.env.PORT
+// console.log(process.env.PORT);
 app.listen(port, () => {
   console.log(`Server listening on port ${port}`);
 });
