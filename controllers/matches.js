@@ -59,25 +59,20 @@ router.get("/:id/questions", async (req, res) => {
     try {
         const { id: match_id } = req.params;
         // Retrieve all available matches from the matches table
-        const query = `SELECT * FROM match_questions JOIN question_options ON match_questions.id = question_options.question_id  WHERE match_id = ? `;
+        const query = `SELECT * FROM match_questions WHERE match_id = ?`;
         const [rows] = await pool.execute(query, [match_id]);
 
-        const map = {};
-        rows.forEach((row) => {
-            if (!map[row.question_id]) {
-                map[row.question_id] = {
-                    question: row.question,
-                    options: [],
-                };
-            }
-            map[row.question_id].options.push({
+        if(rows.length == 0) {
+            return res.status(404).json({ message: "Questions not found" });
+        }
+        const questions = rows.map((row) => {
+            return {
                 id: row.id,
-                option: row.options,
-                odds: row.odds,
-            });
+                question: row.question,
+                options: JSON.parse(row.options),
+            };
         });
-
-        res.json({ questions: map });
+        res.json({ questions: questions });
     } catch (error) {
         console.error("Error executing query", error);
         res.status(500).json({ message: "Internal server error" });
@@ -96,7 +91,6 @@ router.get("/:id/bet", verifyToken, async (req, res) => {
 
         const match = rows[0];
 
-
         const quesstionQuery =
             "Select id from match_questions where match_id = ?";
         const [questionRows] = await pool.execute(quesstionQuery, [match_id]);
@@ -113,9 +107,11 @@ router.get("/:id/bet", verifyToken, async (req, res) => {
         const [existing_bets] = await pool.execute(rowCheckingQuery, rowValues);
 
         if (existing_bets.length === 0) {
-            return res.status(200).json({ bets: {} });
+            return res.status(404).json({ message: "No bets found" });
         } else {
-            return res.status(200).json({ bets: JSON.parse(existing_bets[0].answers) });
+            return res
+                .status(200)
+                .json({ bets: JSON.parse(existing_bets[0].answers) });
         }
     } catch (error) {
         console.log(error);
@@ -133,12 +129,12 @@ router.put("/:id/bet", verifyToken, async (req, res) => {
 
         const query = "Select * from matches where id = ?";
         const [rows] = await pool.execute(query, [match_id]);
-        if (rows.length === 0) {
+        if (rows.length == 0) {
             return res.status(404).json({ message: "Match not found" });
         }
 
         const match = rows[0];
-        if (match.can_bet === 0) {
+        if (match.can_bet == 0) {
             return res
                 .status(400)
                 .json({ message: "Betting is closed for this match" });
@@ -148,7 +144,7 @@ router.put("/:id/bet", verifyToken, async (req, res) => {
             "Select id from match_questions where match_id = ?";
         const [questionRows] = await pool.execute(quesstionQuery, [match_id]);
 
-        if (questionRows.length === 0) {
+        if (questionRows.length == 0) {
             return res
                 .status(404)
                 .json({ message: "No questions found for this match" });
