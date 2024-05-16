@@ -31,14 +31,45 @@ INSERT INTO
   `teams` (`team_name`, `team_logo`)
 VALUES
   (
-    'Addmie & Indomie Warriors',
-    'indomie_&_ADDMIE.png'
+    "POWER BRONCOS",
+    "https://tolaram.retool.com/api/file/bc35fff2-b73e-43e8-942e-65141d857a7c"
   ),
-  ('GPL & Corporate Falcons', 'corporate.png'),
-  ('Colgate White Warriors', 'colgate.png'),
-  ('ROWA & Minimie Vikings', 'ROWA_&_minimie.png'),
-  ('Lucky Stars', 'lucky_stars.png'),
-  ('Power Brancos', 'power_brancos.png');
+  (
+    "CORPORATE FALCONS",
+    "https://tolaram.retool.com/api/file/08b6b449-dd3b-4f82-b37f-bb4a1718a7a4"
+  ),
+  (
+    "KELLOGG'S CONQUERORS",
+    "https://tolaram.retool.com/api/file/44bf17b0-e862-4e62-a094-32d670edda6e"
+  ),
+  (
+    "NUTRIFY LUCKY STARS",
+    "https://tolaram.retool.com/api/file/9a3111f7-1879-4974-9e68-0aa626d7cf4d"
+  ),
+  (
+    "INDOMIE WARRIORS",
+    "https://tolaram.retool.com/api/file/2175b402-524e-4423-adb6-829b413303ec"
+  ),
+  (
+    "BHN HUNTERS",
+    "https://tolaram.retool.com/api/file/88e86ec2-35fa-466e-8ba1-4166629c904b"
+  ),
+  (
+    "COLGATE WHITE WARRIORS",
+    "https://tolaram.retool.com/api/file/7e384f86-6ce3-40d7-8a80-726f39da73c6"
+  ),
+  (
+    "DANOLFZ LANCERS",
+    "https://tolaram.retool.com/api/file/16b4faa3-3d4a-4686-91fc-07e2a776b202"
+  ),
+  (
+    "MINIMIE VIKINGS",
+    "https://tolaram.retool.com/api/file/195c9f8a-1e1c-4bd1-afb3-e76f275083c8"
+  ),
+  (
+    "DUFIL CRUSADERS",
+    "https://tolaram.retool.com/api/file/513feef4-5556-41e7-83f8-8cef4b315265"
+  );
 
 -- Matches
 DROP TABLE IF EXISTS matches;
@@ -51,7 +82,8 @@ CREATE TABLE
     match_title VARCHAR(250) NOT NULL,
     match_time DATETIME NOT NULL,
     can_bet enum ('0', '1') DEFAULT '0',
-    can_show enum ('0', '1') DEFAULT '0'
+    can_show enum ('0', '1') DEFAULT '0',
+    bet_status enum ('dont_process', 'process', 'completed') DEFAULT 'dont_process'
   );
 
 INSERT INTO
@@ -65,26 +97,42 @@ INSERT INTO
   )
 VALUES
   (
-    1,
-    2,
-    'Addmie & Indomie Warriors vs GPL & Corporate Falcons',
-    '2021-09-10 12:00:00',
-    '1',
-    '1'
-  ),
-  (
     3,
     4,
-    'Colgate White Warriors vs ROWA & Minimie Vikings',
-    '2021-09-10 12:00:00',
+    "Kellogg's Conquerors Vs Nutrify Lucky Stars",
+    '2024-05-10 07:30:00',
     '1',
     '1'
   ),
   (
+    10,
     5,
+    'Dufil Crusaders Vs Indomie Warriors',
+    '2024-05-10 07:30:00',
+    '1',
+    '1'
+  ),
+  (
     6,
-    'Lucky Stars vs Power Brancos',
-    '2021-09-10 12:00:00',
+    1,
+    'BHN Hunters Vs Power Broncos',
+    '2024-05-10 07:30:00',
+    '1',
+    '1'
+  ),
+  (
+    7,
+    2,
+    'Colgate White Warriors Vs Corporate Falcons',
+    '2024-05-10 07:30:00',
+    '1',
+    '1'
+  ),
+  (
+    8,
+    9,
+    'DanoLFZ Lancers Vs Minimie Vikings',
+    '2024-05-10 07:30:00',
     '1',
     '1'
   );
@@ -101,57 +149,60 @@ CREATE TABLE
     correct_option VARCHAR(255) DEFAULT NULL
   );
 
-INSERT INTO
-  `match_questions` (`match_id`, `question`, `can_show`, `options`)
+INSERT INTO `match_questions` (`match_id`, `question`, `can_show`, `options`)
 VALUES
-  (
-    '1',
-    'Who will win the toss?',
-    '1',
-    '[{ "id": 1, "option": "Addmie & Indomie Warriors", "odds": 1.5 }, { "id": 2, "option": "GPL & Corporate Falcons", "odds": 1.5 }]'
-  ),
-  (
-    '1',
-    'Who will win the match?',
-    '1',
-    '[{ "id": 1, "option": "Addmie & Indomie Warriors", "odds": 1.5 }, { "id": 2, "option": "GPL & Corporate Falcons", "odds": 1.5 }]'
-  ),
-  (
-    '1',
-    'How many 6s will be hit in the match?',
-    '1',
-    '[{ "id": 1, "option": "0-5", "odds": 1.5 }, { "id": 2, "option": "6-10", "odds": 1.5 }, { "id": 3, "option": "11-15", "odds": 1.5 }, { "id": 4, "option": "16-20", "odds": 1.5 }, { "id": 5, "option": "21-25", "odds": 1.5 }]'
-  ),
-  (
-    '1',
-    'Which female player will score the most runs in this match?',
-    '1',
-    '[{ "id": 1, "option": "Addmie & Indomie Warriors", "odds": 1.5 }, { "id": 2, "option": "GPL & Corporate Falcons", "odds": 1.5 }]'
-  ),
-  (
-    '1',
-    'Who will score the most runs?',
-    '1',
-    '[{ "id": 1, "option": "Addmie & Indomie Warriors", "odds": 1.5 }, { "id": 2, "option": "GPL & Corporate Falcons", "odds": 1.5 }]'
-  ),
-  (
-    '1',
-    'Who will take the most wickets?',
-    '1',
-    '[{ "id": 1, "option": "Addmie & Indomie Warriors", "odds": 1.5 }, { "id": 2, "option": "GPL & Corporate Falcons", "odds": 1.5 }]'
-  ),
-  (
-    '1',
-    'Will team 1 score X or more runs in the first innings?',
-    '1',
-    '[{ "id": 1, "option": "Yes", "odds": 1.5 }, { "id": 2, "option": "No", "odds": 1.5 }]'
-  ),
-  (
-    '1',
-    'Will team 2 score X or more runs in the first innings?',
-    '1',
-    '[{ "id": 1, "option": "Yes", "odds": 1.5 }, { "id": 2, "option": "No", "odds": 1.5 }]'
-  );
+  ('1', 'Toss', '1', '[{ "id": 1, "option": "Kellogg’s Conquerors", "odds": 1.9 }, { "id": 2, "option": "Nutrify Lucky Stars", "odds": 1.9 }]'),
+  ('1', 'Match', '1', '[{ "id": 1, "option": "Kellogg’s Conquerors", "odds": 2.3 }, { "id": 2, "option": "Nutrify Lucky Stars", "odds": 1.7 }]'),
+  ('1', 'Total no. of 6s', '1', '[{ "id": 1, "option": "Over 8.5", "odds": 4 }, { "id": 2, "option": "Under 6.5", "odds": 1.7 }]'),
+  ('1', 'Female Player (Most Runs)?', '1', '[{ "id": 1, "option": "Swati Saboo", "odds": 1.5 }, { "id": 2, "option": "Lakshi Bhavana", "odds": 3 }, { "id": 3, "option": "Jane Fernandes", "odds": 1.6 }, { "id": 4, "option": "Shreya Bhala", "odds": 2.3 }, { "id": 5, "option": "Other", "odds": 5 }]'),
+  ('1', 'Male Player (Most Runs)', '1', '[{ "id": 1, "option": "Sekhar Laddha", "odds": 1.9 }, { "id": 2, "option": "Siddharth Saboo", "odds": 3 }, { "id": 3, "option": "Aditya Pandey", "odds": 3 }, { "id": 4, "option": "Mushrif Ali", "odds": 1.5 }, { "id": 5, "option": "Surender Singh", "odds": 1.9 }, { "id": 6, "option": "Thirumoorthi", "odds": 1.6 }, { "id": 5, "option": "Other", "odds": 6 }]'),
+  ('1', 'Male Player (Most Wickets)', '1', '[{ "id": 1, "option": "Ronald", "odds": 1.9 }, { "id": 2, "option": "Surender Singh", "odds": 3 }, { "id": 3, "option": "Kavin", "odds": 3.5 }, { "id": 4, "option": "Rakesh Agarwal", "odds": 2 }, { "id": 5, "option": "Subham Gayen", "odds": 3 }, { "id": 6, "option": "Bharat Jalan", "odds": 3 }, { "id": 5, "option": "Other", "odds": 6 }]'),
+  ('1', 'Kellogg’s Conquerors – 65 or more in 1st innings', '1', '[{ "id": 1, "option": "Yes", "odds": 1.8 }, { "id": 2, "option": "No", "odds": 1.8 }]'),
+  ('1', 'Nutrify Lucky Stars – 70 or more in 1st innings', '1', '[{ "id": 1, "option": "Yes", "odds": 1.8 }, { "id": 2, "option": "No", "odds": 1.8 }]');
+
+INSERT INTO `match_questions` (`match_id`, `question`, `can_show`, `options`)
+VALUES
+  ('2', 'Toss', '1', '[{ "id": 1, "option": "Dufil Crusaders", "odds": 1.9 }, { "id": 2, "option": "Indomie Warriors", "odds": 1.9 }]'),
+  ('2', 'Match', '1', '[{ "id": 1, "option": "Dufil Crusaders", "odds": 1.6 }, { "id": 2, "option": "Indomie Warriors", "odds": 2.4 }]'),
+  ('2', 'Total no. of 6s', '1', '[{ "id": 1, "option": "Over 7.5", "odds": 1.7 }, { "id": 2, "option": "Under 5.5", "odds": 3 }]'),
+  ('2', 'Female Player (Most Runs)?', '1', '[{ "id": 1, "option": "Deivanai", "odds": 1.8 }, { "id": 2, "option": "Devika", "odds": 2.3 }, { "id": 3, "option": "Deksha Gupta", "odds": 1.8 }, { "id": 4, "option": "Sakthi Rajeshwari", "odds": 3 }, { "id": 5, "option": "Other", "odds": 5 }]'),
+  ('2', 'Male Player (Most Runs)', '1', '[{ "id": 1, "option": "Vinit Baid", "odds": 1.7 }, { "id": 2, "option": "Sabyasachi", "odds": 2.5 }, { "id": 3, "option": "Manpreet Singh", "odds": 2 }, { "id": 4, "option": "Amose", "odds": 3 }, { "id": 5, "option": "Shailendra Singh", "odds": 3 }, { "id": 6, "option": "Dodi Bala", "odds": 2.5 }, { "id": 7, "option": "Akshay Kalra", "odds": 3 }, { "id": 8, "option": "Nandha Kumar", "odds": 2.5 }, { "id": 9, "option": "Venkat Manda", "odds": 2 }, { "id": 10, "option": "Shobhit", "odds": 3.5 }, { "id": 11, "option": "Other", "odds": 6 }]'),
+  ('2', 'Male Player (Most Wickets)', '1', '[{ "id": 1, "option": "Surya Teja", "odds": 1.8 }, { "id": 2, "option": "Ganesh Gaggar", "odds": 3 }, { "id": 3, "option": "Ravi Tripathi", "odds": 4 }, { "id": 4, "option": "Amose", "odds": 1.8 }, { "id": 5, "option": "Shailendra Singh", "odds": 4 }, { "id": 6, "option": "Manpreet Singh", "odds": 5 }, { "id": 7, "option": "Akshay Kalra", "odds": 2 }, { "id": 8, "option": "Venkat Manda", "odds": 2.5 }, { "id": 9, "option": "Shobhit", "odds": 3.5 }, { "id": 10, "option": "Other", "odds": 6 }]'),
+  ('2', 'Dufil Crusaders – 74 or more in 1st innings', '1', '[{ "id": 1, "option": "Yes", "odds": 1.8 }, { "id": 2, "option": "No", "odds": 1.8 }]'),
+  ('2', 'Indomie Warriors – 65 or more in 1st innings', '1', '[{ "id": 1, "option": "Yes", "odds": 1.8 }, { "id": 2, "option": "No", "odds": 1.8 }]');
+
+INSERT INTO `match_questions` (`match_id`, `question`, `can_show`, `options`)
+VALUES
+  ('3', 'Toss', '1', '[{ "id": 1, "option": "BHN Hunters", "odds": 1.9 }, { "id": 2, "option": "Power Broncos", "odds": 1.9 }]'),
+  ('3', 'Match', '1', '[{ "id": 1, "option": "BHN Hunters", "odds": 2.2 }, { "id": 2, "option": "Power Broncos", "odds": 1.7 }]'),
+  ('3', 'Total no. of 6s', '1', '[{ "id": 1, "option": "Over 6.5", "odds": 1.5 }, { "id": 2, "option": "Under 4.5", "odds": 3 }]'),
+  ('3', 'Female Player (Most Runs)?', '1', '[{ "id": 1, "option": "Prachi Kedia", "odds": 3 }, { "id": 2, "option": "Surbhi Mishra", "odds": 2.5 }, { "id": 3, "option": "Srinithi R", "odds": 1.6 }, { "id": 4, "option": "Shradha Mardolkar", "odds": 1.8 }, { "id": 5, "option": "Other", "odds": 5 }]'),
+  ('3', 'Male Player (Most Runs)', '1', '[{ "id": 1, "option": "Chetan Katarki", "odds": 1.8 }, { "id": 2, "option": "Kalyan Lakshmi", "odds": 1.6 }, { "id": 3, "option": "Indrajeet", "odds": 2 }, { "id": 4, "option": "Girdhar Chandak", "odds": 3 }, { "id": 5, "option": "Pankaj Jajoo", "odds": 3 }, { "id": 6, "option": "Gaurav Srivastava", "odds": 1.9 }, { "id": 7, "option": "Subhojit Chakraborty", "odds": 2 }, { "id": 8, "option": "Karan Patel", "odds": 3 }, { "id": 9, "option": "Hari Gaddam", "odds": 3 }, { "id": 10, "option": "Samuel Sonawane", "odds": 3.5 }, { "id": 11, "option": "Other", "odds": 6 }]'),
+  ('3', 'Male Player (Most Wickets)', '1', '[{ "id": 1, "option": "Gaurav Srivastava", "odds": 4 }, { "id": 2, "option": "Indrajeet", "odds": 3 }, { "id": 3, "option": "Sreenu", "odds": 2 }, { "id": 4, "option": "Kalyan Lakshmi", "odds": 2.5 }, { "id": 5, "option": "Saurabh Mirgal", "odds": 2.5 }, { "id": 6, "option": "Mohit Sharda", "odds": 2.1 }, { "id": 7, "option": "Prashant Sharma", "odds": 1.8 }, { "id": 8, "option": "Subhojit Chakraborty", "odds": 3.5 }, { "id": 9, "option": "Samuel Sonawane", "odds": 2.3 }, { "id": 10, "option": "Other", "odds": 6 }]'),
+  ('3', 'BHN Hunters – 63 or more in 1st innings', '1', '[{ "id": 1, "option": "Yes", "odds": 1.8 }, { "id": 2, "option": "No", "odds": 1.8 }]'),
+  ('3', 'Power Broncos – 70 or more in 1st innings', '1', '[{ "id": 1, "option": "Yes", "odds": 1.8 }, { "id": 2, "option": "No", "odds": 1.8 }]');
+
+INSERT INTO `match_questions` (`match_id`, `question`, `can_show`, `options`)
+VALUES
+  ('4', 'Toss', '1', '[{ "id": 1, "option": "Colgate White Warriors", "odds": 1.9 }, { "id": 2, "option": "Corporate Falcons", "odds": 1.9 }]'),
+  ('4', 'Match', '1', '[{ "id": 1, "option": "Colgate White Warriors", "odds": 2.2 }, { "id": 2, "option": "Corporate Falcons", "odds": 1.6 }]'),
+  ('4', 'Total no. of 6s', '1', '[{ "id": 1, "option": "Over 8.5", "odds": 2.7 }, { "id": 2, "option": "Under 6.5", "odds": 1.5 }]'),
+  ('4', 'Female Player (Most Runs)?', '1', '[{ "id": 1, "option": "Prachi Labde", "odds": 3 }, { "id": 2, "option": "Sonal", "odds": 2.8 }, { "id": 3, "option": "Catherine", "odds": 1.7 }, { "id": 4, "option": "Vinanti", "odds": 2.1 }, { "id": 5, "option": "Other", "odds": 5 }]'),
+  ('4', 'Male Player (Most Runs)', '1', '[{ "id": 1, "option": "Aditya Kumar", "odds": 1.6 }, { "id": 2, "option": "Sushant Thakur", "odds": 1.9 }, { "id": 3, "option": "Bonny Renny", "odds": 3.5 }, { "id": 4, "option": "Seenivasa Pandian", "odds": 3 }, { "id": 5, "option": "Ankit Somani", "odds": 3.5 }, { "id": 6, "option": "Yash Choudhary", "odds": 3 }, { "id": 7, "option": "Kuldeep Dangwal", "odds": 2.5 }, { "id": 8, "option": "Bharat Vekariya", "odds": 3 }, { "id": 9, "option": "Sarthak Goyal", "odds": 1.7 }, { "id": 10, "option": "Adesh Bajaj", "odds": 3 }, { "id": 11, "option": "Other", "odds": 6 }]'),
+  ('4', 'Male Player (Most Wickets)', '1', '[{ "id": 1, "option": "Aditya Kumar", "odds": 1.6 }, { "id": 2, "option": "Sushant Thakur", "odds": 2.3 }, { "id": 3, "option": "Anil Sanaboyina", "odds": 3.5 }, { "id": 4, "option": "Apoor Dave", "odds": 3 }, { "id": 5, "option": "Ankit Somani", "odds": 3 }, { "id": 6, "option": "Yash Choudhary", "odds": 2 }, { "id": 7, "option": "Shivkant Modi", "odds": 1.9 }, { "id": 8, "option": "Danish Mehra", "odds": 3 }, { "id": 9, "option": "Sarthak Goyal", "odds": 2.6 }, { "id": 10, "option": "Selva", "odds": 2 }, { "id": 11, "option": "Other", "odds": 6 }]'),
+  ('4', 'Colgate White Warriors – 70 or more in 1st innings', '1', '[{ "id": 1, "option": "Yes", "odds": 1.8 }, { "id": 2, "option": "No", "odds": 1.8 }]'),
+  ('4', 'Corporate Falcons – 68 or more in 1st innings', '1', '[{ "id": 1, "option": "Yes", "odds": 1.8 }, { "id": 2, "option": "No", "odds": 1.8 }]');
+
+  INSERT INTO `match_questions` (`match_id`, `question`, `can_show`, `options`)
+VALUES
+  ('5', 'Toss', '1', '[{ "id": 1, "option": "DanoLFZ Lancers", "odds": 1.9 }, { "id": 2, "option": "Minimie Vikings", "odds": 1.9 }]'),
+  ('5', 'Match', '1', '[{ "id": 1, "option": "DanoLFZ Lancers", "odds": 2.4 }, { "id": 2, "option": "Minimie Vikings", "odds": 1.6 }]'),
+  ('5', 'Total no. of 6s', '1', '[{ "id": 1, "option": "Over 6.5", "odds": 1.3 }, { "id": 2, "option": "Under 4.5", "odds": 4 }]'),
+  ('5', 'Female Player (Most Runs)?', '1', '[{ "id": 1, "option": "Yamini", "odds": 1.5 }, { "id": 2, "option": "Janhavi", "odds": 2 }, { "id": 3, "option": "Sherlin Daya", "odds": 1.6 }, { "id": 4, "option": "Mukta Gokhale", "odds": 3 }, { "id": 5, "option": "Other", "odds": 5 }]'),
+  ('5', 'Male Player (Most Runs)', '1', '[{ "id": 1, "option": "Parmeet Singh", "odds": 1.7 }, { "id": 2, "option": "Deepak Singh", "odds": 4 }, { "id": 3, "option": "Vaibhav Raijada", "odds": 3.5 }, { "id": 4, "option": "Akhilesh Yadav", "odds": 2.8 }, { "id": 5, "option": "Balram Singh", "odds": 3 }, { "id": 6, "option": "Siddharth Khandelwal", "odds": 2.5 }, { "id": 7, "option": "Monish Mantri", "odds": 3 }, { "id": 8, "option": "Mohammed Mujeeb", "odds": 1.8 }, { "id": 9, "option": "Vinayagamoorthy", "odds": 2.2 }, { "id": 10, "option": "Girijesh Yadav", "odds": 4 }, { "id": 11, "option": "Other", "odds": 6 }]'),
+  ('5', 'Male Player (Most Wickets)', '1', '[{ "id": 1, "option": "Parmeet Singh", "odds": 1.9 }, { "id": 2, "option": "Prakash Pawar", "odds": 2.8 }, { "id": 3, "option": "Akhilesh Yadav", "odds": 2.2 }, { "id": 4, "option": "Sidhant Singh", "odds": 2.4 }, { "id": 5, "option": "Sambit Mukherjee", "odds": 3 }, { "id": 6, "option": "Vinayagamoorthy", "odds": 3 }, { "id": 7, "option": "Girijesh Yadav", "odds": 1.6 }, { "id": 8, "option": "Other", "odds": 6 }]'),
+  ('5', 'DanoLFZ Lancers – 65 or more in 1st innings', '1', '[{ "id": 1, "option": "Yes", "odds": 1.8 }, { "id": 2, "option": "No", "odds": 1.8 }]'),
+  ('5', 'Minimie Vikings – 74 or more in 1st innings', '1', '[{ "id": 1, "option": "Yes", "odds": 1.8 }, { "id": 2, "option": "No", "odds": 1.8 }]');
 
 DROP TABLE IF EXISTS match_bets;
 
@@ -160,7 +211,9 @@ CREATE TABLE
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT REFERENCES users (id),
     match_id INT REFERENCES matches (id),
-    answers JSON NOT NULL
+    answers JSON NOT NULL,
+    can_show_points enum ('0', '1') DEFAULT '0',
+    points DECIMAL(10, 2) DEFAULT 0
   );
 
 -- Rounds
@@ -171,16 +224,17 @@ CREATE TABLE
     id INT AUTO_INCREMENT PRIMARY KEY,
     round_name VARCHAR(255) NOT NULL,
     can_bet enum ('0', '1') DEFAULT '0',
-    can_show enum ('0', '1') DEFAULT '0'
+    can_show enum ('0', '1') DEFAULT '0',
+    bet_status enum ('dont_process', 'process', 'completed') DEFAULT 'dont_process'
   );
 
 INSERT INTO
   `rounds` (round_name, can_bet, can_show)
 VALUES
-  ('Round 1', '0', '1'),
-  ('Round 2', '0', '1'),
-  ('Semis', '0', '1'),
-  ('Finals', '0', '1');
+  ('TPL Winners (Before Round 1)', '0', '1'),
+  ('TPL Winners (Before QFs)', '0', '1'),
+  ('TPL Winners (Before SFs)', '0', '1');
+  
 
 DROP TABLE IF EXISTS round_questions;
 
@@ -194,33 +248,23 @@ CREATE TABLE
     correct_option VARCHAR(255) DEFAULT NULL
   );
 
-INSERT INTO
-  `round_questions` (round_id, question, can_show, options)
-VALUES
-  (
+INSERT INTO `round_questions` (round_id, question, can_show, options)
+VALUES (
     1,
-    'Who will win the tournament ?',
+    'TPL Winners (Before Round 1)',
     '1',
-    '[{ "id": 1, "option": "Addmie & Indomie Warriors", "odds": 1.5 }, { "id": 2, "option": "GPL & Corporate Falcons", "odds": 1.5 }]'
-  ),
-  (
-    2,
-    'Who will win the tournament ?',
-    '1',
-    '[{ "id": 1, "option": "Addmie & Indomie Warriors", "odds": 1.5 }, { "id": 2, "option": "GPL & Corporate Falcons", "odds": 1.5 }]'
-  ),
-  (
-    3,
-    'Who will win the tournament ?',
-    '1',
-    '[{ "id": 1, "option": "Addmie & Indomie Warriors", "odds": 1.5 }, { "id": 2, "option": "GPL & Corporate Falcons", "odds": 1.5 }]'
-  ),
-  (
-    4,
-    'Who will win the tournament ?',
-    '1',
-    '[{ "id": 1, "option": "Addmie & Indomie Warriors", "odds": 1.5 }, { "id": 2, "option": "GPL & Corporate Falcons", "odds": 1.5 }]'
-  );
+    '[{ "id": 1, "option": "Power Broncos", "odds": 5 },
+      { "id": 2, "option": "Corporate Falcons", "odds": 8 },
+      { "id": 3, "option": "Kellogg''s Conquerors", "odds": 7 },
+      { "id": 4, "option": "Nutrify Lucky Stars", "odds": 5 },
+      { "id": 5, "option": "Indomie Warriors", "odds": 6.5 },
+      { "id": 6, "option": "BHN Hunters", "odds": 4.5 },
+      { "id": 7, "option": "Colgate White Warriors", "odds": 4.5 },
+      { "id": 8, "option": "DanoLFZ Lancers", "odds": 6 },
+      { "id": 9, "option": "Minimie Vikings", "odds": 3.5 },
+      { "id": 10, "option": "Dufil Crusaders", "odds": 4 }]'
+);
+
 
 DROP TABLE IF EXISTS round_bets;
 
@@ -229,7 +273,9 @@ CREATE TABLE
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT REFERENCES users (id),
     round_id INT REFERENCES rounds (id),
-    answers JSON NOT NULL
+    answers JSON NOT NULL,
+    can_show_points enum ('0', '1') DEFAULT '0',
+    points DECIMAL(10, 2) DEFAULT 0
   );
 
 DROP TABLE IF EXISTS best_player_questions;
@@ -243,29 +289,70 @@ CREATE TABLE
     correct_option VARCHAR(255) DEFAULT NULL
   );
 
-INSERT INTO
-  `best_player_questions` (question, can_show, options)
-VALUES
-  (
-    'Who will be the best female player ?',
-    '1',
-    '[{"id": 1, "option": "Addmie & Indomie Warriors", "odds": 1.5}, {"id": 2, "option": "GPL & Corporate Falcons", "odds": 1.5}]'
-  ),
-  (
-    'Who will score the most runs ?',
-    '1',
-    '[{"id": 1, "option": "Addmie & Indomie Warriors", "odds": 1.5}, {"id": 2, "option": "GPL & Corporate Falcons", "odds": 1.5}]'
-  ),
-  (
-    'Who will take the most wickets ?',
-    '1',
-    '[{"id": 1, "option": "Addmie & Indomie Warriors", "odds": 1.5}, {"id": 2, "option": "GPL & Corporate Falcons", "odds": 1.5}]'
-  ),
-  (
-    'Who will hit maximum sixes ?',
-    '1',
-    '[{"id": 1, "option": "Addmie & Indomie Warriors", "odds": 1.5}, {"id": 2, "option": "GPL & Corporate Falcons", "odds": 1.5}]'
-  );
+
+INSERT INTO `best_player_questions` (question, can_show, options)
+VALUES (
+  'Best Female (Most Runs)',
+  '1',
+  '[{"id": 1, "option": "Yamini", "odds": 1.8}, 
+    {"id": 2, "option": "Jane", "odds": 2.0},
+    {"id": 3, "option": "Sherlin", "odds": 2.4},
+    {"id": 4, "option": "Catherine", "odds": 2.6},
+    {"id": 5, "option": "Swati Saboo", "odds": 2.2},
+    {"id": 6, "option": "Devika", "odds": 4.5},
+    {"id": 7, "option": "Shradha Mardolkar", "odds": 4.0},
+    {"id": 8, "option": "Deivanai", "odds": 3.5},
+    {"id": 9, "option": "Shreya Bhala", "odds": 5.0},
+    {"id": 10, "option": "Other", "odds": 8}]'
+);
+
+INSERT INTO `best_player_questions` (question, can_show, options)
+VALUES (
+  'Best Male (Most Runs)',
+  '1',
+  '[{"id": 1, "option": "Parmeet", "odds": 2.3},
+    {"id": 2, "option": "Aditya Kumar", "odds": 2.0},
+    {"id": 3, "option": "Thirumoorthi", "odds": 2.5},
+    {"id": 4, "option": "Mushrif", "odds": 2.1},
+    {"id": 5, "option": "Kalyan", "odds": 3.2},
+    {"id": 6, "option": "Surinder", "odds": 3.8},
+    {"id": 7, "option": "Gaurav Shrivastava", "odds": 2.7},
+    {"id": 8, "option": "Shekhar Laddha", "odds": 4.0},
+    {"id": 9, "option": "Vinit Baid", "odds": 3.1},
+    {"id": 10, "option": "Other", "odds": 8}]'
+);
+
+INSERT INTO `best_player_questions` (question, can_show, options)
+VALUES (
+  'Best Male (Most Wickets)',
+  '1',
+  '[{"id": 1, "option": "Akshay Kalra", "odds": 3.2},
+    {"id": 2, "option": "Prashant Sharma", "odds": 3.5},
+    {"id": 3, "option": "Aditya Kumar", "odds": 2.2},
+    {"id": 4, "option": "Samuel Sonawane", "odds": 3.6},
+    {"id": 5, "option": "Shivkant Modi", "odds": 2.4},
+    {"id": 6, "option": "Girijesh Yadav", "odds": 3.0},
+    {"id": 7, "option": "Surya Teja", "odds": 4.2},
+    {"id": 8, "option": "Akhilesh Yadav", "odds": 4.2},
+    {"id": 9, "option": "Amose Akwin", "odds": 2.5},
+    {"id": 10, "option": "Other", "odds": 8}]'
+);
+INSERT INTO `best_player_questions` (question, can_show, options)
+VALUES (
+  'Maximum 6s',
+  '1',
+  '[{"id": 1, "option": "Manpreet", "odds": 5.0},
+    {"id": 2, "option": "Sushant Thakur", "odds": 4.2},
+    {"id": 3, "option": "Aditya Kumar", "odds": 3.5},
+    {"id": 4, "option": "Sarthak Goel", "odds": 4.6},
+    {"id": 5, "option": "Kalyan", "odds": 4.0},
+    {"id": 6, "option": "Vinit Baid", "odds": 4.0},
+    {"id": 7, "option": "Girdhar Chandak", "odds": 6.0},
+    {"id": 8, "option": "Chetan Katarki", "odds": 5.7},
+    {"id": 9, "option": "Nandha Kumar", "odds": 5.4},
+    {"id": 10, "option": "Other", "odds": 8}]'
+);
+
 
 DROP TABLE IF EXISTS best_player_bets;
 
@@ -273,5 +360,7 @@ CREATE TABLE
   best_player_bets (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT REFERENCES users (id),
-    answers JSON NOT NULL
+    answers JSON NOT NULL,
+    can_show_points enum ('0', '1') DEFAULT '0',
+    points DECIMAL(10, 2) DEFAULT 0
   );

@@ -17,6 +17,7 @@ router.get("/questions", async (req, res) => {
                 id: row.id,
                 question: row.question,
                 options: JSON.parse(row.options),
+                correct_option: row.correct_option || null,
             };
         });
         res.json({ questions:  questions });

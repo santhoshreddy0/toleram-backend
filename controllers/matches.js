@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const pool = require("../db");
 const { verifyToken } = require("../middleware/middleware");
+const moment = require("moment");
 
 router.get("/", async (req, res) => {
     try {
@@ -18,6 +19,9 @@ router.get("/", async (req, res) => {
                 ON matches.team_two = team2.id
             `;
         const [rows] = await pool.execute(query);
+        // rows.forEach((row) => {
+        //     row.match_time = moment.tz(row.match_time, "Africa/Lagos").format();
+        // });        
 
         res.json({ matches: rows });
     } catch (error) {
@@ -59,6 +63,13 @@ router.get("/:id/questions", async (req, res) => {
     try {
         const { id: match_id } = req.params;
         // Retrieve all available matches from the matches table
+        const matchQuery = "Select * from matches where id = ?";
+        let [matchRows] = await pool.execute(matchQuery, [match_id]);
+        if (matchRows.length == 0) {
+            return res.status(404).json({ message: "Match not found" });
+        }
+        matchRows = matchRows[0];
+
         const query = `SELECT * FROM match_questions WHERE match_id = ?`;
         const [rows] = await pool.execute(query, [match_id]);
 
@@ -70,6 +81,7 @@ router.get("/:id/questions", async (req, res) => {
                 id: row.id,
                 question: row.question,
                 options: JSON.parse(row.options),
+                correct_option: matchRows.bet_status == 'completed' ? row.correct_option : null
             };
         });
         res.json({ questions: questions });
