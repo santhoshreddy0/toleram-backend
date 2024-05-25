@@ -129,39 +129,43 @@ router.get("/rewards", verifyToken, async (req, res) => {
     if (!userId) {
       return res.status(401).json({ message: "Unauthorized" });
     }
-    let totalPoints = 0;
+    let totalPoints = 0.0;
     const points = {};
     const matchQuery = `SELECT SUM(points) as match_points FROM match_bets WHERE user_id = ?`;
     const [matchRows] = await pool.execute(matchQuery, [userId]);
     if (matchRows.length == 0) {
       points["match_points"] = 0.0;
-      totalPoints += 0.0;
+      // totalPoints += 0.0;
     } else {
-      points["match_points"] = parseFloat(matchRows[0].match_points).toFixed(2);
-      totalPoints += matchRows[0].match_points;
+      points["match_points"] = parseFloat(parseFloat(matchRows[0].match_points).toFixed(2));
     }
+    totalPoints += points['match_points']
     const roundQuery = `SELECT SUM(points) as round_points FROM round_bets WHERE user_id = ?`;
     const [roundRows] = await pool.execute(roundQuery, [userId]);
-    if (roundRows.length == 0) {
+    
+    // res.json({"sk":roundRows.length})
+    if (roundRows[0].round_points == null) {
       points["round_points"] = 0.0;
-      totalPoints += 0.0;
+      // totalPoints += 0.0;
     } else {
-      points["round_points"] = parseFloat(roundRows[0].round_points).toFixed(2);
-      totalPoints += roundRows[0].round_points;
+      points["round_points"] = parseFloat(parseFloat(roundRows[0].round_points).toFixed(2));
     }
-
+    totalPoints += points["round_points"];
+    
     const bestPlayerQuery = `SELECT SUM(points) as best_player_points FROM best_player_bets WHERE user_id = ?`;
     const [bestPlayerRows] = await pool.execute(bestPlayerQuery, [userId]);
-    if (bestPlayerRows.length == 0) {
+    if (bestPlayerRows[0].best_player_points == null) {
       points["best_player_points"] = 0.0;
-      totalPoints += 0.0;
+      // totalPoints += 0.0;
     } else {
       points["best_player_points"] = parseFloat(
         bestPlayerRows[0].best_player_points
       ).toFixed(2);
-      totalPoints += bestPlayerRows[0].best_player_points;
     }
-    totalPoints = parseFloat(totalPoints).toFixed(2);          
+    totalPoints += points["best_player_points"];
+    
+             
+    
     res.json({ points, totalPoints: totalPoints });
   } catch (error) {
     console.log(error);
