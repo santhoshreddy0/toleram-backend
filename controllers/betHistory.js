@@ -158,9 +158,9 @@ router.get("/rewards", verifyToken, async (req, res) => {
       points["best_player_points"] = 0.0;
       // totalPoints += 0.0;
     } else {
-      points["best_player_points"] = parseFloat(
+      points["best_player_points"] = parseFloat(parseFloat(
         bestPlayerRows[0].best_player_points
-      ).toFixed(2);
+      ).toFixed(2));
     }
     totalPoints += points["best_player_points"];
     
