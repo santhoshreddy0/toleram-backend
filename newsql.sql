@@ -680,13 +680,261 @@ VALUES
     'dont_process'
   );
 
-  INSERT INTO `match_questions` (`match_id`, `question`, `can_show`, `options`)
+INSERT INTO
+  `match_questions` (`match_id`, `question`, `can_show`, `options`)
 VALUES
-  ('7', 'Toss', '1', '[{ "id": 1, "option": "Power Broncos", "odds": 1.9 }, { "id": 2, "option": "Minimie Vikings", "odds": 1.9 }]'),
-  ('7', 'Match', '1', '[{ "id": 1, "option": "Power Broncos", "odds": 1.6 }, { "id": 2, "option": "Minimie Vikings", "odds": 2.2 }]'),
-  ('7', 'Total no. of 6s', '1', '[{ "id": 1, "option": "Over 8.5", "odds": 3 }, { "id": 2, "option": "Under 6.5", "odds": 2 }]'),
-  ('7', 'Female Player (Most Runs)?', '1', '[{ "id": 1, "option": "Surbhi Mishra", "odds": 2.5 }, { "id": 2, "option": "Mukta", "odds": 3 }, { "id": 3, "option": "Sherlin Daya", "odds": 1.6 }, { "id": 4, "option": "Prachi Kedia", "odds": 3 }, { "id": 5, "option": "Other", "odds": 5 }]'),
-  ('7', 'Male Player (Most Runs)', '1', '[{ "id": 1, "option": "Parmeet Singh", "odds": 1.7 }, { "id": 2, "option": "Gaurav Srivastava", "odds": 1.9 }, { "id": 3, "option": "Subhojit Chakraborty", "odds": 2 }, { "id": 4, "option": "Akhilesh Yadav", "odds": 2.8 }, { "id": 5, "option": "Karan Patel", "odds": 2.5 }, { "id": 6, "option": "Samuel Sonawane", "odds": 3 }, { "id": 7, "option": "Girijesh Yadav", "odds": 4 }, { "id": 8, "option": "Other", "odds": 6 }]'),
-  ('7', 'Male Player (Most Wickets)', '1', '[{ "id": 1, "option": "Prashant Sharma", "odds": 1.8 }, { "id": 2, "option": "Parmeet Singh", "odds": 1.9 }, { "id": 3, "option": "Akhilesh Yadav", "odds": 2.2 }, { "id": 4, "option": "Girijesh Yadav", "odds": 1.6 }, { "id": 5, "option": "Mohit Sharda", "odds": 3.1 }, { "id": 6, "option": "Prashant Sharma", "odds": 1.8 }, { "id": 7, "option": "Subhojit Chakraborty", "odds": 3.5 }, { "id": 8, "option": "Samuel Sonawane", "odds": 2.3 }, { "id": 9, "option": "Karan Patel", "odds": 2.5 }, { "id": 10, "option": "Other", "odds": 6 }]'),
-  ('7', 'Power Broncos - 70 or more in 1st innings', '1', '[{ "id": 1, "option": "Yes", "odds": 2.3 }, { "id": 2, "option": "No", "odds": 1.6 }]'),
-  ('7', 'Minimie Vikings - 65 or more in 1st innings', '1', '[{ "id": 1, "option": "Yes", "odds": 1.8 }, { "id": 2, "option": "No", "odds": 1.8 }]');
+  (
+    '7',
+    'Toss',
+    '1',
+    '[{ "id": 1, "option": "Power Broncos", "odds": 1.9 }, { "id": 2, "option": "Minimie Vikings", "odds": 1.9 }]'
+  ),
+  (
+    '7',
+    'Match',
+    '1',
+    '[{ "id": 1, "option": "Power Broncos", "odds": 1.6 }, { "id": 2, "option": "Minimie Vikings", "odds": 2.2 }]'
+  ),
+  (
+    '7',
+    'Total no. of 6s',
+    '1',
+    '[{ "id": 1, "option": "Over 8.5", "odds": 3 }, { "id": 2, "option": "Under 6.5", "odds": 2 }]'
+  ),
+  (
+    '7',
+    'Female Player (Most Runs)?',
+    '1',
+    '[{ "id": 1, "option": "Surbhi Mishra", "odds": 2.5 }, { "id": 2, "option": "Mukta", "odds": 3 }, { "id": 3, "option": "Sherlin Daya", "odds": 1.6 }, { "id": 4, "option": "Prachi Kedia", "odds": 3 }, { "id": 5, "option": "Other", "odds": 5 }]'
+  ),
+  (
+    '7',
+    'Male Player (Most Runs)',
+    '1',
+    '[{ "id": 1, "option": "Parmeet Singh", "odds": 1.7 }, { "id": 2, "option": "Gaurav Srivastava", "odds": 1.9 }, { "id": 3, "option": "Subhojit Chakraborty", "odds": 2 }, { "id": 4, "option": "Akhilesh Yadav", "odds": 2.8 }, { "id": 5, "option": "Karan Patel", "odds": 2.5 }, { "id": 6, "option": "Samuel Sonawane", "odds": 3 }, { "id": 7, "option": "Girijesh Yadav", "odds": 4 }, { "id": 8, "option": "Other", "odds": 6 }]'
+  ),
+  (
+    '7',
+    'Male Player (Most Wickets)',
+    '1',
+    '[{ "id": 1, "option": "Prashant Sharma", "odds": 1.8 }, { "id": 2, "option": "Parmeet Singh", "odds": 1.9 }, { "id": 3, "option": "Akhilesh Yadav", "odds": 2.2 }, { "id": 4, "option": "Girijesh Yadav", "odds": 1.6 }, { "id": 5, "option": "Mohit Sharda", "odds": 3.1 }, { "id": 6, "option": "Prashant Sharma", "odds": 1.8 }, { "id": 7, "option": "Subhojit Chakraborty", "odds": 3.5 }, { "id": 8, "option": "Samuel Sonawane", "odds": 2.3 }, { "id": 9, "option": "Karan Patel", "odds": 2.5 }, { "id": 10, "option": "Other", "odds": 6 }]'
+  ),
+  (
+    '7',
+    'Power Broncos - 70 or more in 1st innings',
+    '1',
+    '[{ "id": 1, "option": "Yes", "odds": 2.3 }, { "id": 2, "option": "No", "odds": 1.6 }]'
+  ),
+  (
+    '7',
+    'Minimie Vikings - 65 or more in 1st innings',
+    '1',
+    '[{ "id": 1, "option": "Yes", "odds": 1.8 }, { "id": 2, "option": "No", "odds": 1.8 }]'
+  );
+
+-- match 8
+INSERT INTO
+  `matches` (
+    `id`,
+    `team_one`,
+    `team_two`,
+    `match_title`,
+    `match_time`,
+    `can_bet`,
+    `can_show`,
+    `bet_status`
+  )
+VALUES
+  (
+    NULL,
+    '8',
+    '10',
+    'DanoLFZ Lancers vs. Dufil Crusaders',
+    '2024-05-30 16:00:00.000000',
+    '0',
+    '1',
+    'dont_process'
+  );
+
+INSERT INTO
+  `match_questions` (`match_id`, `question`, `can_show`, `options`)
+VALUES
+  (
+    '8',
+    'Toss',
+    '1',
+    '[{ "id": 1, "option": "DanoLFZ Lancers", "odds": 1.9 }, { "id": 2, "option": "Dufil Crusaders", "odds": 1.9 }]'
+  ),
+  (
+    '8',
+    'Match',
+    '1',
+    '[{ "id": 1, "option": "DanoLFZ Lancers", "odds": 2.3 }, { "id": 2, "option": "Dufil Crusaders", "odds": 1.7 }]'
+  ),
+  (
+    '8',
+    'Total no. of 6s',
+    '1',
+    '[{ "id": 1, "option": "Over 6.5", "odds": 1.5 }, { "id": 2, "option": "Under 5.5", "odds": 2.8 }]'
+  ),
+  (
+    '8',
+    'Female Player (Most Runs)',
+    '1',
+    '[{ "id": 1, "option": "Yamini", "odds": 1.5 }, { "id": 2, "option": "Amruta", "odds": 2 }, { "id": 3, "option": "Tejaswini", "odds": 3.6 }, { "id": 4, "option": "Sakthi Rajeshwari", "odds": 3 }, { "id": 5, "option": "Other", "odds": 5 }]'
+  ),
+  (
+    '8',
+    'Combined Total Score – Female Innings Only (Both teams)',
+    '1',
+    '[{ "id": 1, "option": "Over 10.5", "odds": 1.4 }, { "id": 2, "option": "Under 10.5", "odds": 3 }]'
+  ),
+  (
+    '8',
+    'Male Player (Most Runs)',
+    '1',
+    '[{ "id": 1, "option": "Vinit Baid", "odds": 1.7 }, { "id": 2, "option": "Ajay Kumar", "odds": 2.5 }, { "id": 3, "option": "Manpreet Singh", "odds": 2 }, { "id": 4, "option": "Amose", "odds": 2.4 }, { "id": 5, "option": "Shailendra Singh", "odds": 3 }, { "id": 6, "option": "Mohammed Mujeeb", "odds": 1.8 }, { "id": 7, "option": "Naresh", "odds": 2.2 }, { "id": 8, "option": "Siddhartha Khandelwal", "odds": 2 }, { "id": 9, "option": "Vinayagamoorthy", "odds": 3 }, { "id": 10, "option": "Other", "odds": 6 }]'
+  ),
+  (
+    '8',
+    'Male Player (Most Wickets)',
+    '1',
+    '[{ "id": 1, "option": "Amose", "odds": 1.8 }, { "id": 2, "option": "Siddhant Singh", "odds": 2.4 }, { "id": 3, "option": "Shailendra Singh", "odds": 2.6 }, { "id": 4, "option": "Manpreet", "odds": 3 }, { "id": 5, "option": "Vinayagamoorthy", "odds": 3 }, { "id": 6, "option": "Gurusamy Subbiah", "odds": 2 }, { "id": 7, "option": "Other", "odds": 6 }]'
+  ),
+  (
+    '8',
+    'DanoLFZ Lancers - 72 or more in 1st innings',
+    '1',
+    '[{ "id": 1, "option": "Yes", "odds": 1.8 }, { "id": 2, "option": "No", "odds": 1.8 }, { "id": 3, "option": "void", "odds": 1 }]'
+  ),
+  (
+    '8',
+    'Dufil Crusaders - 70 or more in 1st innings',
+    '1',
+    '[{ "id": 1, "option": "Yes", "odds": 1.8 }, { "id": 2, "option": "No", "odds": 1.8 }, { "id": 3, "option": "void", "odds": 1 }]'
+  );
+
+-- match 9
+INSERT INTO
+  `matches` (
+    `id`,
+    `team_one`,
+    `team_two`,
+    `match_title`,
+    `match_time`,
+    `can_bet`,
+    `can_show`,
+    `bet_status`
+  )
+VALUES
+  (
+    NULL,
+    '7',
+    '5',
+    'Colgate White Warriors vs. Indomie Warriors',
+    '2024-05-30 18:30:00.000000',
+    '0',
+    '1',
+    'dont_process'
+  );
+
+INSERT INTO `match_questions` (`match_id`, `question`, `can_show`, `options`)
+VALUES
+  ('9', 'Toss', '1', '[{ "id": 1, "option": "Colgate White Warriors", "odds": 1.9 }, { "id": 2, "option": "Indomie Warriors", "odds": 1.9 }]'),
+  ('9', 'Match', '1', '[{ "id": 1, "option": "Colgate White Warriors", "odds": 1.7 }, { "id": 2, "option": "Indomie Warriors", "odds": 2.2 }]'),
+  ('9', 'Total no. of 6s', '1', '[{ "id": 1, "option": "Over 8.5", "odds": 3 }, { "id": 2, "option": "Under 8.5", "odds": 1.4 }]'),
+  ('9', 'Female Player (Most Runs)', '1', '[{ "id": 1, "option": "Deivanai", "odds": 1.8 }, { "id": 2, "option": "Devika", "odds": 2.3 }, { "id": 3, "option": "Catherine", "odds": 1.7 }, { "id": 4, "option": "Vinanti", "odds": 2.1 }, { "id": 5, "option": "Other", "odds": 5 }]'),
+  ('9', 'Combined Total Score – Female Innings Only (Both teams)', '1', '[{ "id": 1, "option": "Over 10.5", "odds": 1.4 }, { "id": 2, "option": "Under 10.5", "odds": 3 }]'),
+  ('9', 'Male Player (Most Runs)', '1', '[{ "id": 1, "option": "Aditya Kumar", "odds": 1.6 }, { "id": 2, "option": "Sushant Thakur", "odds": 1.9 }, { "id": 3, "option": "Bonny Renny", "odds": 2.5 }, { "id": 4, "option": "Seenivasa Pandian", "odds": 3 }, { "id": 5, "option": "Doddi Bala Satya Prakash", "odds": 2.5 }, { "id": 6, "option": "Akshay Kalra", "odds": 3 }, { "id": 7, "option": "Nandha Kumar", "odds": 2.5 }, { "id": 8, "option": "Vivek", "odds": 3 }, { "id": 9, "option": "Other", "odds": 6 }]'),
+  ('9', 'Male Player (Most Wickets)', '1', '[{ "id": 1, "option": "Aditya Kumar", "odds": 1.6 }, { "id": 2, "option": "Surya Teja", "odds": 2.1 }, { "id": 3, "option": "Manda Venkat", "odds": 1.8 }, { "id": 4, "option": "Akshay Karla", "odds": 2 }, { "id": 5, "option": "Sushant Thakur", "odds": 2.3 }, { "id": 6, "option": "Manjunathan", "odds": 2.5 }, { "id": 7, "option": "Seenivasa Pandian", "odds": 3 }, { "id": 8, "option": "Apoorv Dave", "odds": 3.5 }, { "id": 9, "option": "Other", "odds": 6 }]'),
+  ('9', 'Colgate White Warriors – 70 or more in 1st innings', '1', '[{ "id": 1, "option": "Yes", "odds": 1.8 }, { "id": 2, "option": "No", "odds": 1.8 }, { "id": 3, "option": "void", "odds": 1 }]'),
+  ('9', 'Indomie Warriors - 64 or more in 1st innings', '1', '[{ "id": 1, "option": "Yes", "odds": 1.8 }, { "id": 2, "option": "No", "odds": 1.8 }, { "id": 3, "option": "void", "odds": 1 }]');
+
+-- match 10 
+INSERT INTO `matches` (`id`, `team_one`, `team_two`, `match_title`, `match_time`, `can_bet`, `can_show`, `bet_status`) VALUES (NULL, '6', '2', 'Quarter Finals - 3', '2024-05-31 15:30:00.000000', '0', '1', 'dont_process');
+
+INSERT INTO `match_questions` (`match_id`, `question`, `can_show`, `options`)
+VALUES
+  ('10', 'Toss', '1', '[{ "id": 1, "option": "BHN Hunters", "odds": 1.9 }, { "id": 2, "option": "Corporate Falcons", "odds": 1.9 }]'),
+  ('10', 'Match', '1', '[{ "id": 1, "option": "BHN Hunters", "odds": 2.2 }, { "id": 2, "option": "Corporate Falcons", "odds": 1.7 }]'),
+  ('10', 'Total no. of 6s', '1', '[{ "id": 1, "option": "Over 8.5", "odds": 1.8 }, { "id": 2, "option": "Under 6.5", "odds": 2.5 }]'),
+  ('10', 'Female Player (Most Runs)', '1', '[{ "id": 1, "option": "Prachi", "odds": 3 }, { "id": 2, "option": "Sonal Agarwal", "odds": 2.8 }, { "id": 3, "option": "Srinithi R", "odds": 1.8 }, { "id": 4, "option": "Shradha Mardolkar", "odds": 1.5 }, { "id": 5, "option": "Other", "odds": 5 }]'),
+  ('10', 'Combined Total Score – Female Innings Only (Both teams)', '1', '[{ "id": 1, "option": "Over 15.5", "odds": 1.5 }, { "id": 2, "option": "Under 15.5", "odds": 2.6 }]'),
+  ('10', 'Male Player (Most Runs)', '1', '[{ "id": 1, "option": "Chetan Katarki", "odds": 2.5 }, { "id": 2, "option": "Kalyan Lakshmi", "odds": 1.6 }, { "id": 3, "option": "Indrajeet", "odds": 1.8 }, { "id": 4, "option": "Girdhar Chandak", "odds": 3.5 }, { "id": 5, "option": "Pratyush Rai", "odds": 3 }, { "id": 6, "option": "Yash Agarwal", "odds": 2.6 }, { "id": 7, "option": "Yash Chaudhary", "odds": 1.8 }, { "id": 8, "option": "Other", "odds": 6 }]'),
+  ('10', 'Male Player (Most Wickets)', '1', '[{ "id": 1, "option": "Indrajeet", "odds": 3 }, { "id": 2, "option": "Sreenu", "odds": 2 }, { "id": 3, "option": "Kalyan Lakshmi", "odds": 2.5 }, { "id": 4, "option": "Saurabh Mirgal", "odds": 2.5 }, { "id": 5, "option": "Shivkant Modi", "odds": 1.9 }, { "id": 6, "option": "Ankit Somani", "odds": 3 }, { "id": 7, "option": "Yash Chaudhary", "odds": 2.5 }, { "id": 8, "option": "Sarthak Goyal", "odds": 2.6 }, { "id": 9, "option": "Other", "odds": 6 }]'),
+  ('10', 'BHN Hunters 75 or more in 1st innings', '1', '[{ "id": 1, "option": "Yes", "odds": 1.7 }, { "id": 2, "option": "No", "odds": 2.1 }, { "id": 3, "option": "void", "odds": 1 }]'),
+  ('10', 'Corporate Falcons 80 or more in 1st innings', '1', '[{ "id": 1, "option": "Yes", "odds": 2.1 }, { "id": 2, "option": "No", "odds": 1.7 }, { "id": 3, "option": "void", "odds": 1 }]');
+
+-- match 11
+
+INSERT INTO `matches` (`id`, `team_one`, `team_two`, `match_title`, `match_time`, `can_bet`, `can_show`, `bet_status`) VALUES (NULL, '4', '1', 'Quarter Finals - 4', '2024-05-31 18:30:00.000000', '0', '1', 'dont_process');
+
+INSERT INTO `match_questions` (`match_id`, `question`, `can_show`, `options`)
+VALUES
+  ('11', 'Toss', '1', '[{ "id": 1, "option": "Nutrify Lucky Stars", "odds": 1.9 }, { "id": 2, "option": "Power Broncos", "odds": 1.9 }]'),
+  ('11', 'Match', '1', '[{ "id": 1, "option": "Nutrify Lucky Stars", "odds": 1.6 }, { "id": 2, "option": "Power Broncos", "odds": 2.4 }]'),
+  ('11', 'Total no. of 6s', '1', '[{ "id": 1, "option": "Over 9.5", "odds": 1.8 }, { "id": 2, "option": "Under 7.5", "odds": 1.8 }]'),
+  ('11', 'Female Player (Most Runs)', '1', '[{ "id": 1, "option": "Swati Saboo", "odds": 1.5 }, { "id": 2, "option": "Arpana Deep", "odds": 1.6 }, { "id": 3, "option": "Surbhi Mishra", "odds": 2.5 }, { "id": 4, "option": "Prachi Kedia", "odds": 3 }, { "id": 5, "option": "Other", "odds": 5 }]'),
+  ('11', 'Combined Total Score – Female Innings Only (Both teams)', '1', '[{ "id": 1, "option": "Over 17.5", "odds": 1.5 }, { "id": 2, "option": "Under 17.5", "odds": 2.6 }]'),
+  ('11', 'Male Player (Most Runs)', '1', '[{ "id": 1, "option": "Mushrif Ali", "odds": 1.5 }, { "id": 2, "option": "Surender Singh", "odds": 1.9 }, { "id": 3, "option": "Thirumoorthi", "odds": 1.6 }, { "id": 4, "option": "Gaurav Srivastava", "odds": 1.9 }, { "id": 5, "option": "Karan Patel", "odds": 2.5 }, { "id": 6, "option": "Subhojit", "odds": 2.2 }, { "id": 7, "option": "Other", "odds": 6 }]'),
+  ('11', 'Male Player (Most Wickets)', '1', '[{ "id": 1, "option": "Ronald", "odds": 1.9 }, { "id": 2, "option": "Prashant Sharma", "odds": 1.8 }, { "id": 3, "option": "Mohit Sarda", "odds": 2.1 }, { "id": 4, "option": "Surender Singh", "odds": 3 }, { "id": 5, "option": "Samuel Sonawane", "odds": 2.3 }, { "id": 6, "option": "Shivakumar Patil", "odds": 2.5 }, { "id": 7, "option": "Thirumoorthi", "odds": 2.2 }, { "id": 8, "option": "Other", "odds": 6 }]'),
+  ('11', 'Nutrify Lucky Stars – 75 or more in 1st innings', '1', '[{ "id": 1, "option": "Yes", "odds": 1.7 }, { "id": 2, "option": "No", "odds": 2.1 }, { "id": 3, "option": "void", "odds": 1 }]'),
+  ('11', 'Power Broncos – 68 or more in 1st innings', '1', '[{ "id": 1, "option": "Yes", "odds": 2.1 }, { "id": 2, "option": "No", "odds": 1.7 }, { "id": 3, "option": "void", "odds": 1 }]');
+
+-- match 12
+INSERT INTO `matches` (`id`, `team_one`, `team_two`, `match_title`, `match_time`, `can_bet`, `can_show`, `bet_status`) VALUES (NULL, '10', '1', 'Semi finals - 1 ', '2024-06-01 09:30:00.000000', '0', '1', 'dont_process');
+
+INSERT INTO `match_questions` (`match_id`, `question`, `can_show`, `options`)
+VALUES
+  ('12', 'Toss', '1', '[{ "id": 1, "option": "Dufil Crusaders", "odds": 1.9 }, { "id": 2, "option": "Power Broncos", "odds": 1.9 }]'),
+  ('12', 'Match', '1', '[{ "id": 1, "option": "Dufil Crusaders", "odds": 1.5 }, { "id": 2, "option": "Power Broncos", "odds": 2.5 }]'),
+  ('12', 'Total no. of 6s', '1', '[{ "id": 1, "option": "Over 12.5", "odds": 2.1 }, { "id": 2, "option": "Under 10.5", "odds": 1.6 }]'),
+  ('12', 'Female Player (Most Runs)', '1', '[{ "id": 1, "option": "Sakthi", "odds": 2.6 }, { "id": 2, "option": "Tejaswini", "odds": 1.6 }, { "id": 3, "option": "Surbhi Mishra", "odds": 2.5 }, { "id": 4, "option": "Rashmi", "odds": 2.1 }, { "id": 5, "option": "Other", "odds": 5 }]'),
+  ('12', 'Combined Total Score – Female Innings Only (Both teams)', '1', '[{ "id": 1, "option": "Over 19.5", "odds": 1.9 }, { "id": 2, "option": "Under 19.5", "odds": 1.7 }]'),
+  ('12', 'Male Player (Most Runs)', '1', '[{ "id": 1, "option": "Vinit", "odds": 1.5 }, { "id": 2, "option": "Amose", "odds": 2.5 }, { "id": 3, "option": "Shailendra Singh", "odds": 3 }, { "id": 4, "option": "Gaurav Srivastava", "odds": 1.9 }, { "id": 5, "option": "Karan Patel", "odds": 2.5 }, { "id": 6, "option": "Subhojit", "odds": 2.2 }, { "id": 7, "option": "Vivek Arora", "odds": 3 }, { "id": 8, "option": "Other", "odds": 6 }]'),
+  ('12', 'Male Player (Most Wickets)', '1', '[{ "id": 1, "option": "Karan Patel", "odds": 1.9 }, { "id": 2, "option": "Prashant Sharma", "odds": 2.5 }, { "id": 3, "option": "Mohit Sarda", "odds": 2.1 }, { "id": 4, "option": "Amose", "odds": 2.3 }, { "id": 5, "option": "Samuel Sonawane", "odds": 2.3 }, { "id": 6, "option": "Ajay", "odds": 2 }, { "id": 7, "option": "Manpreet", "odds": 3 }, { "id": 8, "option": "Shailendra Singh", "odds": 2.6 }, { "id": 9, "option": "Other", "odds": 6 }]'),
+  ('12', 'Dufil Crusaders - 80 or more in 1st innings', '1', '[{ "id": 1, "option": "Yes", "odds": 1.8 }, { "id": 2, "option": "No", "odds": 1.8 }, { "id": 3, "option": "void", "odds": 1 }]'),
+  ('12', 'Power Broncos - 74 or more in 1st innings', '1', '[{ "id": 1, "option": "Yes", "odds": 1.8 }, { "id": 2, "option": "No", "odds": 1.8 }, { "id": 3, "option": "void", "odds": 1 }]');
+
+-- round before SF
+INSERT INTO `round_questions` (round_id, question, can_show, options)
+VALUES (
+    2,
+    'TPL Winners (Before SFs)',
+    '1',
+    '[{ "id": 1, "option": "Power Broncos", "odds": 2.8 },
+      { "id": 2, "option": "BHN Hunters", "odds": 2.6 },
+      { "id": 3, "option": "Colgate White Warriors", "odds": 1.8 },
+      { "id": 4, "option": "Dufil Crusaders", "odds": 2.4 }]'
+);
+
+-- match 13
+INSERT INTO `matches` (`id`, `team_one`, `team_two`, `match_title`, `match_time`, `can_bet`, `can_show`, `bet_status`) VALUES (NULL, '6', '7', 'Semi finals - 2', '2024-06-01 12:30:00.000000', '0', '1', 'dont_process');
+
+INSERT INTO `match_questions` (`match_id`, `question`, `can_show`, `options`)
+VALUES
+  ('13', 'Toss', '1', '[{ "id": 1, "option": "BHN Hunters", "odds": 1.9 }, { "id": 2, "option": "Colgate Warriors", "odds": 1.9 }]'),
+  ('13', 'Match', '1', '[{ "id": 1, "option": "BHN Hunters", "odds": 2 }, { "id": 2, "option": "Colgate Warriors", "odds": 1.6 }]'),
+  ('13', 'Total no. of 6s', '1', '[{ "id": 1, "option": "Over 12.5", "odds": 2.1 }, { "id": 2, "option": "Under 10.5", "odds": 1.6 }]'),
+  ('13', 'Female Player (Most Runs)', '1', '[{ "id": 1, "option": "Catherine", "odds": 1.7 }, { "id": 2, "option": "Vinanti", "odds": 2.1 }, { "id": 3, "option": "Srinithi R", "odds": 1.8 }, { "id": 4, "option": "Shradha Mardolkar", "odds": 1.5 }, { "id": 5, "option": "Other", "odds": 5 }]'),
+  ('13', 'Combined Total Score – Female Innings Only (Both teams)', '1', '[{ "id": 1, "option": "Over 23.5", "odds": 1.6 }, { "id": 2, "option": "Under 23.5", "odds": 2.2 }]'),
+  ('13', 'Male Player (Most Runs)', '1', '[{ "id": 1, "option": "Chetan Katarki", "odds": 2.5 }, { "id": 2, "option": "Kalyan Lakshmi", "odds": 1.6 }, { "id": 3, "option": "Indrajeet", "odds": 1.8 }, { "id": 4, "option": "Girdhar Chandak", "odds": 3.5 }, { "id": 5, "option": "Aditya Kumar", "odds": 1.6 }, { "id": 6, "option": "Sushant Thakur", "odds": 1.9 }, { "id": 7, "option": "Bonny Renny", "odds": 2.5 }, { "id": 8, "option": "Seenivasa Pandian", "odds": 3 }, { "id": 9, "option": "Other", "odds": 6 }]'),
+  ('13', 'Male Player (Most Wickets)', '1', '[{ "id": 1, "option": "Indrajeet", "odds": 3 }, { "id": 2, "option": "Sreenu", "odds": 2 }, { "id": 3, "option": "Kalyan Lakshmi", "odds": 2.5 }, { "id": 4, "option": "Saurabh Mirgal", "odds": 2.5 }, { "id": 5, "option": "Aditya Kumar", "odds": 1.9 }, { "id": 6, "option": "Sushant Thakur", "odds": 2.3 }, { "id": 7, "option": "Seenivasa Pandian", "odds": 3 }, { "id": 8, "option": "Danish Mehra", "odds": 3.5 }, { "id": 9, "option": "Other", "odds": 6 }]'),
+  ('13', 'BHN Hunters 90 or more in 1st innings', '1', '[{ "id": 1, "option": "Yes", "odds": 1.7 }, { "id": 2, "option": "No", "odds": 2.1 }, { "id": 3, "option": "void", "odds": 1 }]'),
+  ('13', 'Colgate Warriors 85 or more in 1st innings', '1', '[{ "id": 1, "option": "Yes", "odds": 1.7 }, { "id": 2, "option": "No", "odds": 2.1 }, { "id": 3, "option": "void", "odds": 1 }]');
+
+
+--  finals
+INSERT INTO `matches` (`id`, `team_one`, `team_two`, `match_title`, `match_time`, `can_bet`, `can_show`, `bet_status`) VALUES (NULL, '10', '7', 'Finals', '2024-06-01 18:30:00.000000', '0', '1', 'dont_process');
+
+INSERT INTO `match_questions` (`match_id`, `question`, `can_show`, `options`)
+VALUES
+  ('14', 'Toss', '1', '[{ "id": 1, "option": "Dufil Crusaders", "odds": 1.9 }, { "id": 2, "option": "Colgate Warriors", "odds": 1.9 }]'),
+  ('14', 'Match', '1', '[{ "id": 1, "option": "Dufil Crusaders", "odds": 2.7 }, { "id": 2, "option": "Colgate Warriors", "odds": 1.4 }]'),
+  ('14', 'Total no. of 6s', '1', '[{ "id": 1, "option": "Over 11.5", "odds": 1.8 }, { "id": 2, "option": "Under 9.5", "odds": 1.8 }]'),
+  ('14', 'Female Player (Most Runs)', '1', '[{ "id": 1, "option": "Sakthi", "odds": 2.6 }, { "id": 2, "option": "Tejaswini", "odds": 1.6 }, { "id": 3, "option": "Catherine", "odds": 1.7 }, { "id": 4, "option": "Vinanti", "odds": 2.1 }, { "id": 5, "option": "Other", "odds": 5 }]'),
+  ('14', 'Combined Total Score – Female Innings Only (Both teams)', '1', '[{ "id": 1, "option": "Over 20.5", "odds": 1.4 }, { "id": 2, "option": "Under 20.5", "odds": 2.5 }]'),
+  ('14', 'Male Player (Most Runs)', '1', '[{ "id": 1, "option": "Vinit", "odds": 1.5 }, { "id": 2, "option": "Amose", "odds": 2.5 }, { "id": 3, "option": "Shailendra Singh", "odds": 3 }, { "id": 4, "option": "Ajay", "odds": 2.4 }, { "id": 5, "option": "Aditya Kumar", "odds": 1.6 }, { "id": 6, "option": "Sushant Thakur", "odds": 1.9 }, { "id": 7, "option": "Bonny Renny", "odds": 2.5 }, { "id": 8, "option": "Seenivasa Pandian", "odds": 3 }, { "id": 9, "option": "Other", "odds": 6 }]'),
+  ('14', 'Male Player (Most Wickets)', '1', '[{ "id": 1, "option": "Aditya Kumar", "odds": 1.9 }, { "id": 2, "option": "Sushant Thakur", "odds": 2.3 }, { "id": 3, "option": "Seenivasa Pandian", "odds": 3 }, { "id": 4, "option": "Danish Mehra", "odds": 3.5 }, { "id": 5, "option": "Amose", "odds": 2.3 }, { "id": 6, "option": "Ajay", "odds": 2 }, { "id": 7, "option": "Manpreet", "odds": 3 }, { "id": 8, "option": "Shailendra Singh", "odds": 2.6 }, { "id": 9, "option": "Other", "odds": 6 }]'),
+  ('14', 'Dufil Crusaders 85 or more in 1st innings', '1', '[{ "id": 1, "option": "Yes", "odds": 2.2 }, { "id": 2, "option": "No", "odds": 1.5 }, { "id": 3, "option": "void", "odds": 1 }]'),
+  ('14', 'Colgate Warriors 95 or more in 1st innings', '1', '[{ "id": 1, "option": "Yes", "odds": 1.5 }, { "id": 2, "option": "No", "odds": 2.2 }, { "id": 3, "option": "void", "odds": 1 }]');
