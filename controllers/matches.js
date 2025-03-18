@@ -128,11 +128,12 @@ router.get("/:id/questions", async (req, res) => {
         if(rows.length == 0) {
             return res.status(404).json({ message: "Questions not found" });
         }
+        console.log("rows",rows);
         const questions = rows.map((row) => {
             return {
                 id: row.id,
                 question: row.question,
-                options: JSON.parse(row.options),
+                options: row.options,
                 correct_option: matchRows.bet_status == 'completed' ? row.correct_option : null
             };
         });
