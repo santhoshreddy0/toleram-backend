@@ -1,8 +1,60 @@
 const express = require("express");
 const router = express.Router();
 const pool = require("../db");
-const { verifyToken } = require("../middleware/middleware");
+const { verifyToken, verifyRole } = require("../middleware/middleware");
 const moment = require("moment");
+
+
+router.post("/", verifyRole("admin"), async (req, res) => {
+    const { teamOneId, teamTwoId, matchTitle, matchTime, canBet, canShow, betStatus } = req.body;
+  
+    if (!teamOneId || !teamTwoId || !matchTitle || !matchTime) {
+      return res.status(400).json({ message: "Missing required fields" });
+    }
+  
+    // Validate match time format (assume it's in ISO string format)
+    const matchDate = new Date(matchTime);
+    if (isNaN(matchDate.getTime())) {
+      return res.status(400).json({ message: "Invalid match time" });
+    }
+  
+    // Set the match_time to UTC format (use toISOString() to get UTC)
+    const matchTimeUtc = matchDate.toISOString();
+  
+    try {
+      
+      const [teamRows] = await pool.execute(
+        "SELECT * FROM teams WHERE id IN (?, ?)",
+        [teamOneId, teamTwoId]
+      );
+  
+      if (teamRows.length !== 2) {
+        return res.status(400).json({ message: "One or both teams not found" });
+      }
+  
+      const [insertResult] = await pool.execute(
+        "INSERT INTO matches (team_one, team_two, match_title, match_time, can_bet, can_show, bet_status) VALUES (?, ?, ?, ?, ?, ?, ?)",
+        [
+          teamOneId,
+          teamTwoId,
+          matchTitle,
+          matchTimeUtc,
+          canBet || '1',
+          canShow || '1',
+          betStatus || 'dont_process'
+        ]
+      );
+  
+      res.json({
+        message: "Match created successfully",
+        matchId: insertResult.insertId,
+      });
+    } catch (error) {
+      console.error("Error executing query", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
 
 router.get("/", async (req, res) => {
     try {

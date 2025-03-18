@@ -23,6 +23,20 @@ function verifyToken(req, res, next) {
   }
 }
 
+function verifyRole(role) {
+  return (req, res, next) => {
+    verifyToken(req, res, (err) => {
+      if (err) return;
+
+      if (req.user.role !== role) {
+        return res.status(403).json({ message: 'Access denied. Admins only.' });
+      }
+
+      next();
+    });
+  };
+}
+
 async function getUserById(userId) {
   const query = 'SELECT * FROM users WHERE id = ?';
   const [rows] = await pool.execute(query, [userId]);
@@ -36,5 +50,6 @@ async function getUserById(userId) {
 
 module.exports = {
   verifyToken,
+  verifyRole,
   getUserById
 };
