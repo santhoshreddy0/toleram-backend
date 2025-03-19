@@ -21,6 +21,7 @@ const betHistory = require("./controllers/betHistory");
 const teamsRouter = require("./controllers/teams");
 const mediaRouter = require("./controllers/media");
 const playersRouter = require("./controllers/players");
+const userRouter = require("./controllers/user");
 
 app.use("/login", loginRouter);
 app.use("/signup", signupRouter);
@@ -31,6 +32,7 @@ app.use("/history", betHistory);
 app.use("/teams", teamsRouter);
 app.use("/media", mediaRouter);
 app.use("/players", playersRouter);
+app.use('/user', userRouter);
 
 // Start the server
 const port = process.env.PORT;

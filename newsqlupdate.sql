@@ -32,3 +32,4 @@ CREATE TABLE match_player_mapping (
 );
 
 CREATE TABLE dream11_players ( id INTEGER AUTO_INCREMENT PRIMARY KEY, player_id INTEGER, user_id INTEGER, responsibility ENUM('captain', 'vice-captain', 'player') NOT NULL, FOREIGN KEY (player_id) REFERENCES players(id) ON DELETE CASCADE, FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE );
+ALTER TABLE `dream11_players` CHANGE `responsibility` `role_type` ENUM('captain','vice-captain','player') CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL;

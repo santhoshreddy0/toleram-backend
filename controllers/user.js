@@ -1,0 +1,186 @@
+const express = require("express");
+const router = express.Router();
+const pool = require("../db");
+const { verifyToken, verifyRole } = require("../middleware/middleware");
+
+function validatePlayerRole(players) {
+  let captainCount = 0;
+  let viceCaptainCount = 0;
+
+  players.forEach(player => {
+    if (player.roleType === "captain") captainCount++;
+    if (player.roleType === "vice-captain") viceCaptainCount++;
+  });
+
+  return captainCount === 1 && viceCaptainCount === 1;
+}
+
+
+router.post("/createTeam", verifyToken, async (req, res) => {
+    const { players } = req.body;
+    
+    if (!players || !Array.isArray(players) || players.length === 0) {
+      return res.status(400).json({ message: "No players selected" });
+    }
+  
+    if (players.length !== 11) {
+      return res.status(400).json({ message: "You must select exactly 11 players" });
+    }
+  
+    if (!validatePlayerRole(players)) {
+      return res.status(400).json({ message: "You must select only one captain and one vice-captain" });
+    }
+  
+    const userId = req.user.id;
+  
+    const playerInserts = [];
+    const playerIds = [];
+  
+    for (let player of players) {
+      const { playerId, roleType } = player;
+  
+      if (!playerId || !roleType) {
+        return res.status(400).json({ message: "Missing playerId or roleType" });
+      }
+  
+      if (!['captain', 'vice-captain', 'player'].includes(roleType)) {
+        return res.status(400).json({ message: "Invalid player role" });
+      }
+  
+      playerIds.push(playerId);
+      playerInserts.push([userId, playerId, roleType]);
+    }
+  
+    const connection = await pool.getConnection();
+    
+    try {
+      await connection.beginTransaction();
+
+      const [existingPlayers] = await connection.query(
+        "SELECT id FROM players WHERE id IN (?)",
+        [playerIds]
+      );
+  
+      const existingPlayerIds = existingPlayers.map(player => player.id);
+  
+      const missingPlayerIds = playerIds.filter(id => !existingPlayerIds.includes(id));
+      if (missingPlayerIds.length > 0) {
+        return res.status(400).json({
+          message: `Player IDs do not exist: ${missingPlayerIds.join(", ")}`
+        });
+      }
+ 
+      const [insertResult] = await connection.query(
+        "INSERT INTO dream11_players (user_id, player_id, role_type) VALUES ?",
+        [playerInserts]
+      );
+  
+    
+      await connection.commit();
+  
+      res.json({
+        message: "Team created successfully",
+      });
+    } catch (error) {
+      
+      await connection.rollback();
+      console.error("Error executing query", error);
+      res.status(500).json({ message: "Internal server error" });
+    } finally {
+      connection.release();
+    }
+  });
+
+router.put("/updateTeam", verifyToken, async (req, res) => {
+    const { players } = req.body;
+    
+    if (!players || !Array.isArray(players) || players.length === 0) {
+      return res.status(400).json({ message: "No players selected" });
+    }
+  
+    if (players.length !== 11) {
+      return res.status(400).json({ message: "You must select exactly 11 players" });
+    }
+  
+    if (!validatePlayerRole(players)) {
+      return res.status(400).json({ message: "You must select only one captain and one vice-captain" });
+    }
+  
+    const userId = req.user.id;
+  
+    const connection = await pool.getConnection();
+    
+    try {
+        await connection.beginTransaction();
+    
+    for (let player of players) {
+        const { id, playerId, roleType } = player;
+        if (!id || !playerId || !roleType || !['captain', 'vice-captain', 'player'].includes(roleType)) {
+          await connection.rollback();
+          return res.status(400).json({ message: "Invalid player data" });
+        }
+   
+        const [updateResult] = await connection.execute(
+          `UPDATE dream11_players
+           SET player_id = ?, role_type = ?
+           WHERE user_id = ? AND id = ?`,
+          [playerId, roleType, userId, id]
+        );
+  
+        if (updateResult.affectedRows === 0) {
+          await connection.rollback();
+          return res.status(400).json({ message: `Failed to update player with ID ${id}` });
+        }
+      }
+  
+      await connection.commit();
+      res.json({ message: "Players updated successfully" });
+  
+    } catch (error) {
+      
+      await connection.rollback();
+      console.error("Error executing query", error);
+      res.status(500).json({ message: "Internal server error" });
+    } finally {
+      
+      connection.release();
+    }
+  });  
+
+  router.get('/team', verifyToken, async (req, res) => {
+    const userId = req.user.id;
+  
+    try {
+      const [teamPlayers] = await pool.execute(
+        `select
+	dp.player_id AS player_id, p.player_logo,
+  p.name AS player_name,
+  dp.role_type AS player_role,
+  IFNULL(SUM(mpm.points),0) AS points 
+from dream11_players dp 
+LEFT JOIN match_player_mapping mpm 
+	ON dp.player_id = mpm.player_id
+LEFT JOIN players p 
+	ON p.id = dp.player_id
+where dp.user_id = ?
+GROUP BY dp.player_id, dp.role_type `
+      ,[userId]);
+  
+      if (teamPlayers.length === 0) {
+        return res.status(404).json({ message: "No team found for the user" });
+      }
+  
+      const totalPoints = teamPlayers.reduce((sum, player) => sum + player.points, 0);
+      //console.log("teamplayers", teamPlayers);
+  
+      res.json({
+        team: teamPlayers,
+        totalPoints
+      });
+    } catch (error) {
+      console.error("Error executing query", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+module.exports = router;

@@ -22,7 +22,7 @@ router.patch("/:playerId", verifyRole("admin"), async (req, res) => {
     }
   
     if (imageKey && !validateString(imageKey)) {
-      return res.status(400).json({ message: "Invalid url" });
+      return res.status(400).json({ message: "Invalid key" });
     }
     if (role && !['all-rounder', 'batsman', 'bowler', 'wicket-keeper'].includes(role)) {
         return res.status(400).json({ message: "Invalid role for player" });
@@ -85,7 +85,7 @@ router.patch("/:playerId", verifyRole("admin"), async (req, res) => {
 
   router.get("/", verifyToken, async (req, res) => {
     try {
-      const [players] = await pool.execute("SELECT * FROM players");
+      const [players] = await pool.execute("SELECT p.* , t.team_name , t.team_logo FROM players p LEFT JOIN teams t ON p.team_id = t.id");
   
       if (players.length === 0) {
         return res.status(404).json({ message: "No players found" });
@@ -105,7 +105,7 @@ router.patch("/:playerId", verifyRole("admin"), async (req, res) => {
   
     try {
       const [playerRows] = await pool.execute(
-        "SELECT * FROM players WHERE id = ?",
+        "SELECT p.* , t.team_name , t.team_logo  FROM players p LEFT JOIN teams t ON p.team_id = t.id WHERE p.id = ?",
         [playerId]
       );
   
