@@ -14,7 +14,7 @@ const s3Client = new S3Client({
     },
   });
 
-router.post("/generate-upload-url", verifyRole('admin'), async (req, res) => {
+router.post("/generate-upload-url", async (req, res) => {
   const { fileName, fileType } = req.body;
   const allowedImageTypes = [
     "image/jpeg",
