@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const pool = require("../db");
 const { verifyToken } = require("../middleware/middleware");
+const { jsonParse } = require("../utils");
 
 router.get("/", verifyToken, async (req, res) => {
   try {
@@ -66,7 +67,7 @@ router.get("/matches/:id", verifyToken, async (req, res) => {
     if (rows.length === 0) {
       return res.status(404).json({ message: "Match not found" });
     }
-    rows[0].answers = JSON.parse(rows[0].answers);
+    rows[0].answers = jsonParse(rows[0].answers);
     res.json({ matchBet: rows[0] });
   } catch (error) {
     console.log(error);
@@ -92,7 +93,7 @@ router.get("/rounds/:id", verifyToken, async (req, res) => {
     if (rows.length === 0) {
       return res.status(404).json({ message: "Round not found" });
     }
-    rows[0].answers = JSON.parse(rows[0].answers);
+    rows[0].answers = jsonParse(rows[0].answers);
     res.json({ roundBet: rows[0] });
   } catch (error) {
     console.log(error);
@@ -115,7 +116,7 @@ router.get("/bestplayers", verifyToken, async (req, res) => {
     if (rows.length === 0) {
       return res.status(404).json({ message: "Best player bets not found" });
     }
-    rows[0].answers = JSON.parse(rows[0].answers);
+    rows[0].answers = jsonParse(rows[0].answers);
     res.json({ bestPlayerBets: rows[0] });
   } catch (error) {
     console.log(error);

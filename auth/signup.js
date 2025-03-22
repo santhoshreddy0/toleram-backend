@@ -53,12 +53,15 @@ router.post('/', async (req, res) => {
     // Generate a JWT token with the new user's ID and email
     const newUser = {
       id: insertResult.insertId,
-      email
+      email,
+      role: 'user',
+      name
     };
     const token = generateToken(newUser);
     res.json({ 
       "name":name,
       "email":email,
+      "role":'user',
       token 
     });
   } catch (error) {
