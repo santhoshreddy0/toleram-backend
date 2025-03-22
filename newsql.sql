@@ -938,3 +938,68 @@ VALUES
   ('14', 'Male Player (Most Wickets)', '1', '[{ "id": 1, "option": "Aditya Kumar", "odds": 1.9 }, { "id": 2, "option": "Sushant Thakur", "odds": 2.3 }, { "id": 3, "option": "Seenivasa Pandian", "odds": 3 }, { "id": 4, "option": "Danish Mehra", "odds": 3.5 }, { "id": 5, "option": "Amose", "odds": 2.3 }, { "id": 6, "option": "Ajay", "odds": 2 }, { "id": 7, "option": "Manpreet", "odds": 3 }, { "id": 8, "option": "Shailendra Singh", "odds": 2.6 }, { "id": 9, "option": "Other", "odds": 6 }]'),
   ('14', 'Dufil Crusaders 85 or more in 1st innings', '1', '[{ "id": 1, "option": "Yes", "odds": 2.2 }, { "id": 2, "option": "No", "odds": 1.5 }, { "id": 3, "option": "void", "odds": 1 }]'),
   ('14', 'Colgate Warriors 95 or more in 1st innings', '1', '[{ "id": 1, "option": "Yes", "odds": 1.5 }, { "id": 2, "option": "No", "odds": 2.2 }, { "id": 3, "option": "void", "odds": 1 }]');
+
+ALTER TABLE users
+ADD COLUMN role ENUM('user', 'admin') NOT NULL DEFAULT 'user';
+
+ALTER TABLE teams
+ADD COLUMN status ENUM('0', '1') NOT NULL DEFAULT '1';
+
+CREATE TABLE players (
+  id INTEGER AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
+  player_role ENUM('all-rounder', 'batsman', 'bowler', 'wicket-keeper') NOT NULL,
+  team_id INTEGER,
+  player_logo VARCHAR(255) DEFAULT NULL,
+  FOREIGN KEY (team_id) REFERENCES teams(id) ON DELETE SET NULL
+);
+
+CREATE TABLE match_player_mapping (
+  id INTEGER AUTO_INCREMENT PRIMARY KEY,
+  match_id INTEGER,
+  player_id INTEGER,
+  balls_played INTEGER DEFAULT 0,
+  player_score INTEGER DEFAULT 0,
+  points INTEGER DEFAULT 0,
+  fours INTEGER DEFAULT 0,
+  sixes INTEGER DEFAULT 0,
+  wickets INTEGER DEFAULT 0,
+  maiden_overs INTEGER DEFAULT 0,
+  stumps INTEGER DEFAULT 0,
+  catches INTEGER DEFAULT 0,
+  run_outs INTEGER DEFAULT 0,  
+  FOREIGN KEY (match_id) REFERENCES matches(id) ON DELETE CASCADE,
+  FOREIGN KEY (player_id) REFERENCES matches(id) ON DELETE CASCADE
+);
+
+CREATE TABLE dream11_players (
+    id INTEGER AUTO_INCREMENT PRIMARY KEY,
+    player_id INTEGER,
+    user_id INTEGER,
+    responsibility ENUM('captain', 'vice-captain', 'player') NOT NULL DEFAULT 'player',
+    FOREIGN KEY (player_id) REFERENCES players(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+ALTER TABLE `dream11_players` CHANGE `responsibility` `role_type` ENUM('captain','vice-captain','player') CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL;
+
+-- Create rooms table
+CREATE TABLE rooms (
+  id INT AUTO_INCREMENT PRIMARY KEY,  
+  name VARCHAR(255) NOT NULL         
+);
+
+-- Create comments table with user_name as a foreign key referencing the users table
+CREATE TABLE comments (
+  id INT AUTO_INCREMENT PRIMARY KEY, 
+  comment TEXT NOT NULL,         
+  user_id INT NOT NULL,      
+  user_name VARCHAR(255) NOT NULL,       
+  room_id INT NOT NULL,            
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,  
+  FOREIGN KEY (room_id) REFERENCES rooms(id) ON DELETE CASCADE  
+);
+
+ALTER TABLE comments ADD COLUMN created_at DATETIME, ADD COLUMN likes_count INT;
+
+

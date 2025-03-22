@@ -23,19 +23,19 @@ function verifyToken(req, res, next) {
   }
 }
 
-function verifyRole(role) {
+function verifyRole(requiredRole) {
   return (req, res, next) => {
-    verifyToken(req, res, (err) => {
-      if (err) return;
+    if (!req.user || !req.user.role) {
+      return res.status(403).json({ message: 'User role not found' });
+    }
 
-      if (req.user.role !== role) {
-        return res.status(403).json({ message: 'Access denied. Admins only.' });
-      }
-
-      next();
-    });
+    if (req.user.role !== requiredRole) {
+      return res.status(403).json({ message: `Access denied. Required role: ${requiredRole}` });
+    }
+    next();
   };
 }
+
 
 async function getUserById(userId) {
   const query = 'SELECT * FROM users WHERE id = ?';

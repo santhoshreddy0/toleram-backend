@@ -3,6 +3,7 @@ const router = express.Router();
 const { verifyToken } = require("../middleware/middleware");
 
 const pool = require("../db");
+const { jsonParse } = require("../utils");
 
 router.get("/", async (req, res) => {
     try {
@@ -47,7 +48,7 @@ router.get("/:id/questions", async (req, res) => {
             return {
                 id: row.id,
                 question: row.question,
-                options: JSON.parse(row.options),
+                options: jsonParse(row.options),
                 correct_option: row.correct_option || null,
             };
         });
@@ -142,7 +143,7 @@ router.get("/:id/bet", verifyToken, async (req, res) => {
         if (rows.length === 0) {
             return res.status(404).json({ message: "No bets found" });
         }
-        const bets = JSON.parse(rows[0].answers);
+        const bets = jsonParse(rows[0].answers);
         res.status(200).json({ bets: bets });
     } catch (error) {
         console.error("Error executing query", error);

@@ -36,7 +36,7 @@ router.post('/', async (req, res) => {
       // Verify the password
       if (password === user.password) {
         // Generate a JWT token with the user ID and email
-        const token = generateToken({ id: user.id, email: user.email , role: user.role });
+        const token = generateToken({ id: user.id, email: user.email , role: user.role , name: user.name});
         res.json({ 
           "id" : user.id,
           "name":user.name,

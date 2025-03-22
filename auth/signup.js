@@ -54,7 +54,8 @@ router.post('/', async (req, res) => {
     const newUser = {
       id: insertResult.insertId,
       email,
-      role: 'user'
+      role: 'user',
+      name
     };
     const token = generateToken(newUser);
     res.json({ 

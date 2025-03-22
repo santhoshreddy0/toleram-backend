@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const pool = require("../db");
 const { verifyToken } = require("../middleware/middleware");
+const { jsonParse } = require("../utils");
 
 router.get("/questions", async (req, res) => {
     try {
@@ -16,7 +17,7 @@ router.get("/questions", async (req, res) => {
             return {
                 id: row.id,
                 question: row.question,
-                options: JSON.parse(row.options),
+                options: jsonParse(row.options),
                 correct_option: row.correct_option || null,
             };
         });
@@ -108,7 +109,7 @@ router.get("/bets", verifyToken, async (req, res) => {
         }
 
         const bets = rows[0];
-        res.json({ bets: JSON.parse(bets.answers) });
+        res.json({ bets: jsonParse(bets.answers) });
     } catch (error) {
         console.error("Error executing query", error);
         res.status(500).json({ message: "Internal server error" });
