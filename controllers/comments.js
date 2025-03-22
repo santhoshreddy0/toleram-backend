@@ -13,7 +13,7 @@ router.post("/rooms/:roomdId", verifyToken, async (req, res) => {
     const { roomdId } = req.params;
     const { comment } = req.body;
     const user_id = req.user.id;
-    const user_name = req.user.name || 'Dhoni';
+    const user_name = req.user.name;
 
     const created_at = moment.utc().format('YYYY-MM-DD HH:mm:ss');
 
