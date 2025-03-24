@@ -51,7 +51,7 @@ router.post("/rooms/:roomdId", verifyToken, async (req, res) => {
 
 
 
-ITEMS_PER_PAGE = 10;
+ITEMS_PER_PAGE = process.env.ITEMS_PER_PAGE || 50;
 const SECRET_KEY = crypto.createHash('sha256').update(process.env.SECRET_KEY).digest();
 const IV_LENGTH = 16;
 
@@ -85,7 +85,7 @@ router.get("/rooms/:roomId", async (req, res) => {
       lastSeenId = parseInt(state.lastSeenId, 10) || 0;
       firstSeenId = parseInt(state.firstSeenId, 10) || 0;
     } catch (err) {
-    //   return res.status(400).json({ message: "Invalid token" });
+      // return res.status(400).json({ message: "Invalid token" });
     }
   }
 
@@ -111,17 +111,25 @@ router.get("/rooms/:roomId", async (req, res) => {
       return res.status(404).json({ message: "No comments found" });
     }
 
-    const nextToken = encryptText(
-      JSON.stringify({ lastSeenId: rows[rows.length - 1].id })
-    );
+    let nextToken = null;
+    let prevToken = null;
 
-    const prevToken = encryptText(
-      JSON.stringify({ firstSeenId: rows[0].id })
-    );
+    // If there are more comments after this batch, send nextToken
+    if (rows.length === ITEMS_PER_PAGE) {
+      nextToken = encryptText(
+        JSON.stringify({ lastSeenId: rows[rows.length - 1].id })
+      );
+    }
 
-    
+    // If there are more comments before this batch, send prevToken
+    if (firstSeenId > 0) {
+      prevToken = encryptText(
+        JSON.stringify({ firstSeenId: rows[0].id })
+      );
+    }
+
     return res.status(200).json({
-      comments:rows,
+      comments: rows,
       nextToken,
       prevToken,
     });
