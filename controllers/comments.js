@@ -51,7 +51,7 @@ router.post("/rooms/:roomdId", verifyToken, async (req, res) => {
 
 
 
-ITEMS_PER_PAGE = process.env.ITEMS_PER_PAGE || 50;
+const ITEMS_PER_PAGE = parseInt(process.env.ITEMS_PER_PAGE, 10) || 50;
 const SECRET_KEY = crypto.createHash('sha256').update(process.env.SECRET_KEY).digest();
 const IV_LENGTH = 16;
 
@@ -134,6 +134,7 @@ router.get("/rooms/:roomId", async (req, res) => {
       prevToken,
     });
   } catch (error) {
+    console.error("Error executing query", error);
     return res.status(500).json({ message: "Internal server error" });
   }
 });
