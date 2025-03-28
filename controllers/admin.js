@@ -39,6 +39,9 @@ router.post("/matches", async (req, res) => {
   if (!matchTime) {
     validationErrors.push("Match time is required.");
   }
+  if (teamOneId == teamTwoId) {
+    validationErrors.push("Please select different teams");
+  }
   if(betStatus && !['dont_process', 'process', 'completed'].includes(betStatus)){
     validationErrors.push("Invalid bet status");
   }
@@ -46,6 +49,7 @@ router.post("/matches", async (req, res) => {
   if (validationErrors.length > 0) {
     return res.status(400).json({ errors: validationErrors });
   }
+  
 
   // Validate match time format (assume it's in ISO string format)
   const matchDate = new Date(matchTime);
@@ -64,6 +68,10 @@ router.post("/matches", async (req, res) => {
 
     if (teamRows.length !== 2) {
       return res.status(400).json({ message: "One or both teams not found" });
+    }
+
+    if (teamOneId == teamTwoId) {
+      return res.status(400).json({ message: "Please select two different teams" });
     }
 
     const [insertResult] = await pool.execute(
@@ -275,13 +283,13 @@ router.patch("/matches/:matchId/players/:playerId", async (req, res) => {
 
 router.patch("/players/:playerId", async (req, res) => {
     const { playerId } = req.params;
-    const { name, imageKey, role  } = req.body;
+    const { name, imageUrl, role  } = req.body;
   
     if (name && !validateName(name)) {
       return res.status(400).json({ message: "Invalid player name" });
     }
   
-    if (imageKey && !validateString(imageKey)) {
+    if (imageUrl && !validateString(imageUrl)) {
       return res.status(400).json({ message: "Invalid key" });
     }
     if (role && !['all-rounder', 'batsman', 'bowler', 'wicket-keeper'].includes(role)) {
@@ -309,9 +317,9 @@ router.patch("/players/:playerId", async (req, res) => {
         updateValues.push(name);
       }
   
-      if (imageKey) {
+      if (imageUrl) {
         updateFields.push("player_logo = ?");
-        updateValues.push(imageKey);
+        updateValues.push(imageUrl);
       }
   
       if (role !== undefined) {
@@ -344,14 +352,14 @@ router.patch("/players/:playerId", async (req, res) => {
   });
   
   router.post("/teams", async (req, res) => {
-    const { name, imageKey } = req.body;
+    const { name, imageUrl } = req.body;
   
     if (!validateName(name)) {
       res.status(400).json({ message: "Invalid team name" });
       return;
     }
   
-    if (!validateString(imageKey)) {
+    if (!validateString(imageUrl)) {
       res.status(400).json({ message: "Invalid key" });
       return;
     }
@@ -369,7 +377,7 @@ router.patch("/players/:playerId", async (req, res) => {
   
       const [insertResult] = await pool.execute(
         "INSERT INTO teams (team_name, team_logo) VALUES (?, ?)",
-        [name, imageKey]
+        [name, imageUrl]
       );
   
       res.json({
@@ -384,13 +392,13 @@ router.patch("/players/:playerId", async (req, res) => {
   
   router.patch("/teams/:teamId", async (req, res) => {
       const { teamId } = req.params;
-      const { name, imageKey, status } = req.body;
+      const { name, imageUrl, status } = req.body;
     
       if (name && !validateName(name)) {
         return res.status(400).json({ message: "Invalid team name" });
       }
     
-      if (imageKey && !validateString(imageKey)) {
+      if (imageUrl && !validateString(imageUrl)) {
         return res.status(400).json({ message: "Invalid key" });
       }
     
@@ -418,9 +426,9 @@ router.patch("/players/:playerId", async (req, res) => {
           updateValues.push(name);
         }
     
-        if (imageKey) {
+        if (imageUrl) {
           updateFields.push("team_logo = ?");
-          updateValues.push(imageKey);
+          updateValues.push(imageUrl);
         }
     
         if (status !== undefined) {
@@ -457,13 +465,13 @@ router.patch("/players/:playerId", async (req, res) => {
     //createplayer
       router.post("/teams/:teamId", async (req, res) => {
         const { teamId } = req.params;
-        const { name, imageKey , role} = req.body;
+        const { name, imageUrl , role} = req.body;
       
         if (!validateName(name)) {
           return res.status(400).json({ message: "Invalid player name" });
         }
       
-        if (!validateString(imageKey)) {
+        if (!validateString(imageUrl)) {
           return res.status(400).json({ message: "Invalid key" });
         }
     
@@ -494,7 +502,7 @@ router.patch("/players/:playerId", async (req, res) => {
       
           const [insertResult] = await pool.execute(
             "INSERT INTO players (name, player_logo, team_id, player_role) VALUES (?, ?, ?, ?)",
-            [name, imageKey, teamId, role]
+            [name, imageUrl, teamId, role]
           );
       
           res.json({
@@ -502,7 +510,7 @@ router.patch("/players/:playerId", async (req, res) => {
             player: {
               id: insertResult.insertId,
               name,
-              imageKey,
+              imageUrl,
               teamId,
             },
           });
