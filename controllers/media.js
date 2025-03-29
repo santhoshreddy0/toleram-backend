@@ -14,7 +14,7 @@ const s3Client = new S3Client({
     },
   });
 
-router.post("/generate-upload-url", async (req, res) => {
+router.post("/generate-presigned-url", async (req, res) => {
   const { fileName, fileType } = req.body;
   const allowedImageTypes = [
     "image/jpeg",
@@ -43,8 +43,8 @@ router.post("/generate-upload-url", async (req, res) => {
   try {
     const command = new PutObjectCommand(s3Params);
     const url = await getSignedUrl(s3Client, command, { expiresIn: 300 });
-    //const imageUrl = `https://${process.env.AWS_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${uniqueKey}`;
-    res.json({ presignedUrl: url, key:uniqueKey });
+    imageUrl = `https://${process.env.AWS_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${uniqueKey}`;
+    res.json({ presignedUrl: url, imageUrl });
   } catch (error) {
     console.error("Error executing query", error);
     res.status(500).json({ message: "Internal server error" });
