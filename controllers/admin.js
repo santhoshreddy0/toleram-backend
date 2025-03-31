@@ -97,6 +97,116 @@ router.post("/matches", async (req, res) => {
   }
 });
 
+router.patch("/matches/:id", async (req, res) => {
+  const matchId = req.params.id;
+  const {
+    teamOneId,
+    teamTwoId,
+    matchTitle,
+    matchTime,
+    canBet,
+    canShow,
+    betStatus,
+  } = req.body;
+
+  const validationErrors = [];
+
+  // Validate match data if provided
+  if (teamOneId && teamTwoId && teamOneId == teamTwoId) {
+    validationErrors.push("Please select different teams.");
+  }
+
+  if (betStatus && !['dont_process', 'process', 'completed'].includes(betStatus)) {
+    validationErrors.push("Invalid bet status.");
+  }
+
+  if (validationErrors.length > 0) {
+    return res.status(400).json({ errors: validationErrors });
+  }
+
+  // Validate match time format if provided
+  if (matchTime) {
+    const matchDate = new Date(matchTime);
+    if (isNaN(matchDate.getTime())) {
+      return res.status(400).json({ message: "Invalid match time." });
+    }
+  }
+
+  try {
+   
+    const [matchRows] = await pool.execute("SELECT * FROM matches WHERE id = ?", [matchId]);
+
+    if (matchRows.length === 0) {
+      return res.status(404).json({ message: "Match not found." });
+    }
+
+    
+    if (teamOneId || teamTwoId) {
+      const [teamRows] = await pool.execute("SELECT * FROM teams WHERE id IN (?, ?)", [teamOneId, teamTwoId]);
+
+      if (teamRows.length !== 2) {
+        return res.status(400).json({ message: "One or both teams not found." });
+      }
+
+      if (teamOneId === teamTwoId) {
+        return res.status(400).json({ message: "Please select two different teams." });
+      }
+    }
+
+    
+    const updates = [];
+    const updateValues = [];
+
+    if (teamOneId) {
+      updates.push("team_one = ?");
+      updateValues.push(teamOneId);
+    }
+    if (teamTwoId) {
+      updates.push("team_two = ?");
+      updateValues.push(teamTwoId);
+    }
+    if (matchTitle) {
+      updates.push("match_title = ?");
+      updateValues.push(matchTitle);
+    }
+    if (matchTime) {
+      const matchDate = new Date(matchTime);
+      const matchTimeUtc = new Date(matchDate.toISOString()).toISOString().slice(0, 19).replace('T', ' ');
+      updates.push("match_time = ?");
+      updateValues.push(matchTimeUtc);
+    }
+    if (canBet !== undefined) {
+      updates.push("can_bet = ?");
+      updateValues.push(canBet);
+    }
+    if (canShow !== undefined) {
+      updates.push("can_show = ?");
+      updateValues.push(canShow);
+    }
+    if (betStatus) {
+      updates.push("bet_status = ?");
+      updateValues.push(betStatus);
+    }
+
+    
+    updates.push("WHERE id = ?");
+    updateValues.push(matchId);
+
+    // Update the match record
+    const query = `UPDATE matches SET ${updates.join(", ")} `;
+    await pool.execute(query, updateValues);
+
+    res.json({
+      message: "Match updated successfully",
+      matchId: matchId,
+    });
+  } catch (error) {
+    console.error("Error executing query", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+
 router.post("/matches/:matchId/addQuestion",  async (req, res) => {
   const { question, canShow, options } = req.body;
   const { matchId } = req.params;
@@ -290,7 +400,7 @@ router.patch("/players/:playerId", async (req, res) => {
     }
   
     if (imageUrl && !validateString(imageUrl)) {
-      return res.status(400).json({ message: "Invalid key" });
+      return res.status(400).json({ message: "Invalid url" });
     }
     if (role && !['all-rounder', 'batsman', 'bowler', 'wicket-keeper'].includes(role)) {
         return res.status(400).json({ message: "Invalid role for player" });
@@ -360,7 +470,7 @@ router.patch("/players/:playerId", async (req, res) => {
     }
   
     if (!validateString(imageUrl)) {
-      res.status(400).json({ message: "Invalid key" });
+      res.status(400).json({ message: "Invalid url" });
       return;
     }
   
@@ -399,7 +509,7 @@ router.patch("/players/:playerId", async (req, res) => {
       }
     
       if (imageUrl && !validateString(imageUrl)) {
-        return res.status(400).json({ message: "Invalid key" });
+        return res.status(400).json({ message: "Invalid url" });
       }
     
       if (status && !['0', '1'].includes(status)) {
@@ -472,7 +582,7 @@ router.patch("/players/:playerId", async (req, res) => {
         }
       
         if (!validateString(imageUrl)) {
-          return res.status(400).json({ message: "Invalid key" });
+          return res.status(400).json({ message: "Invalid url" });
         }
     
         if (!role || !['all-rounder', 'batsman', 'bowler', 'wicket-keeper'].includes(role)) {
