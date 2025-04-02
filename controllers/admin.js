@@ -13,15 +13,7 @@ function validateString(string) {
 }
 
 router.post("/matches", async (req, res) => {
-  const {
-    teamOneId,
-    teamTwoId,
-    matchTitle,
-    matchTime,
-    canBet,
-    canShow,
-    betStatus,
-  } = req.body;
+  const { teamOneId, teamTwoId, matchTitle, matchTime } = req.body;
   const validationErrors = [];
 
   if (!teamOneId) {
@@ -37,13 +29,7 @@ router.post("/matches", async (req, res) => {
     validationErrors.push("Match time is required.");
   }
   if (teamOneId == teamTwoId) {
-    validationErrors.push("Please select different teams");
-  }
-  if (
-    betStatus &&
-    !["dont_process", "process", "completed"].includes(betStatus)
-  ) {
-    validationErrors.push("Invalid bet status");
+    validationErrors.push("Please select two different teams");
   }
 
   if (validationErrors.length > 0) {
@@ -72,23 +58,9 @@ router.post("/matches", async (req, res) => {
       return res.status(400).json({ message: "One or both teams not found" });
     }
 
-    if (teamOneId == teamTwoId) {
-      return res
-        .status(400)
-        .json({ message: "Please select two different teams" });
-    }
-
     const [insertResult] = await pool.execute(
       "INSERT INTO matches (team_one, team_two, match_title, match_time, can_bet, can_show, bet_status) VALUES (?, ?, ?, ?, ?, ?, ?)",
-      [
-        teamOneId,
-        teamTwoId,
-        matchTitle,
-        matchTimeUtc,
-        canBet || "1",
-        canShow || "1",
-        betStatus || "dont_process",
-      ]
+      [teamOneId, teamTwoId, matchTitle, matchTimeUtc, "0", "1", "dont_process"]
     );
 
     res.json({
@@ -103,28 +75,14 @@ router.post("/matches", async (req, res) => {
 
 router.patch("/matches/:id", async (req, res) => {
   const matchId = req.params.id;
-  const {
-    teamOneId,
-    teamTwoId,
-    matchTitle,
-    matchTime,
-    canBet,
-    canShow,
-    betStatus,
-  } = req.body;
+  const { teamOneId, teamTwoId, matchTitle, matchTime, canBet, canShow } =
+    req.body;
 
   const validationErrors = [];
 
   // Validate match data if provided
   if (teamOneId && teamTwoId && teamOneId == teamTwoId) {
     validationErrors.push("Please select different teams.");
-  }
-
-  if (
-    betStatus &&
-    !["dont_process", "process", "completed"].includes(betStatus)
-  ) {
-    validationErrors.push("Invalid bet status.");
   }
 
   if (validationErrors.length > 0) {
@@ -158,7 +116,7 @@ router.patch("/matches/:id", async (req, res) => {
     if (newTeamOneId === newTeamTwoId) {
       return res
         .status(400)
-        .json({ message: "Please select two different teams." });
+        .json({ message: "Team Id must be different from other team Id" });
     }
 
     const validTeams = [];
@@ -212,10 +170,6 @@ router.patch("/matches/:id", async (req, res) => {
       updates.push("can_show = ?");
       updateValues.push(canShow);
     }
-    if (betStatus) {
-      updates.push("bet_status = ?");
-      updateValues.push(betStatus);
-    }
 
     updateValues.push(matchId);
 
@@ -231,6 +185,44 @@ router.patch("/matches/:id", async (req, res) => {
     console.error("Error executing query", error);
     res.status(500).json({ message: "Internal server error" });
   }
+});
+
+router.put("/matches/:matchId/process-bet", async (req, res) => {
+  const { betStatus } = req.body;
+
+  if (betStatus) {
+    return res.status(400).json({ message: "Please provide the bet status!" });
+  }
+
+  if (
+    betStatus &&
+    !["dont_process", "process", "completed"].includes(betStatus)
+  ) {
+    return res.status(400).json({ message: "Invalid bet status" });
+  }
+  try{
+    const [matchRows] = await pool.execute(
+      "SELECT * FROM matches WHERE id = ?",
+      [matchId]
+    );
+
+    if (matchRows.length === 0) {
+      return res.status(404).json({ message: "Match not found." });
+    }
+
+    const query = `UPDATE matches SET bet_status  WHERE id = ? `;
+    await pool.execute(query, betStatus);
+
+    res.json({
+      message: "Match bet status updated successfully"
+    });
+
+
+  }catch(error){
+    console.error("Error executing query", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+
 });
 
 router.post("/matches/:matchId/addQuestion", async (req, res) => {
@@ -612,7 +604,7 @@ router.post("/teams/:teamId", async (req, res) => {
     return res.status(400).json({ message: "Invalid player name" });
   }
 
-  if (!validateString(imageUrl)) {
+  if (imageUrl && imageUrl.trim().length === 0) {
     return res.status(400).json({ message: "Invalid url" });
   }
 
@@ -646,7 +638,7 @@ router.post("/teams/:teamId", async (req, res) => {
 
     const [insertResult] = await pool.execute(
       "INSERT INTO players (name, player_logo, team_id, player_role) VALUES (?, ?, ?, ?)",
-      [name, imageUrl, teamId, role]
+      [name, imageUrl || null, teamId, role]
     );
 
     res.json({

@@ -25,6 +25,8 @@ const playersRouter = require("./controllers/players");
 const dream11 = require("./controllers/dream11");
 const adminRouter = require("./controllers/admin");
 const commentsRouter = require("./controllers/comments");
+const roomsRouter = require("./controllers/rooms");
+const userRouter = require("./controllers/user");
 const { verifyToken, verifyRole } = require("./middleware/middleware");
 
 app.use("/login", loginRouter);
@@ -38,6 +40,8 @@ app.use("/media", mediaRouter);
 app.use("/players", playersRouter);
 app.use('/dream11', dream11);
 app.use('/comments', commentsRouter);
+app.use('/rooms', roomsRouter);
+app.use("/user", verifyToken, userRouter);
 app.use('/admin', verifyToken, verifyRole('admin'), adminRouter);
 // Start the server
 const port = process.env.PORT;
