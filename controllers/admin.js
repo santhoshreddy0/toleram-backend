@@ -357,7 +357,7 @@ router.patch("/questions/:questionId", async (req, res) => {
 
     if (options !== undefined) {
       updateFields.push("options = ?");
-      updateValues.push(JSON.stringify(options));
+      updateValues.push(options);
     }
 
     if (updateFields.length === 0) {
