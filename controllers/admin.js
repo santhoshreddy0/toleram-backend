@@ -247,6 +247,7 @@ router.get("/matches/:id/questions", async (req, res) => {
       return {
         id: row.id,
         question: row.question,
+        canShow: row.can_show,
         options: jsonParse(row.options),
         correct_option: row.correct_option,
       };
