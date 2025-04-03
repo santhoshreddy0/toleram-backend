@@ -225,6 +225,38 @@ router.put("/matches/:matchId/process-bet", async (req, res) => {
   }
 
 });
+router.get("/matches/:id/questions", async (req, res) => {
+  try {
+    const { id: match_id } = req.params;
+    // Retrieve all available matches from the matches table
+    const matchQuery = "Select * from matches where id = ?";
+    let [matchRows] = await pool.execute(matchQuery, [match_id]);
+    if (matchRows.length == 0) {
+      return res.status(404).json({ message: "Match not found" });
+    }
+    matchRows = matchRows[0];
+
+    const query = `SELECT * FROM match_questions WHERE match_id = ?`;
+    const [rows] = await pool.execute(query, [match_id]);
+
+    if (rows.length == 0) {
+      return res.status(404).json({ message: "Questions not found" });
+    }
+    console.log("rows", rows);
+    const questions = rows.map((row) => {
+      return {
+        id: row.id,
+        question: row.question,
+        options: jsonParse(row.options),
+        correct_option: row.correct_option,
+      };
+    });
+    res.json({ questions: questions });
+  } catch (error) {
+    console.error("Error executing query", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
 
 router.post("/matches/:matchId/addQuestion", async (req, res) => {
   const { question, options } = req.body;
