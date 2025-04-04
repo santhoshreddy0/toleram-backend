@@ -158,14 +158,14 @@ router.get("/rooms/:roomId", async (req, res) => {
     // If there are more comments after this batch, send nextToken
     if (rows.length === ITEMS_PER_PAGE) {
       nextToken = encryptText(
-        JSON.stringify({ lastSeenId: rows[rows.length - 1].id })
+        JSON.stringify({ lastSeenId: rows[rows.length - 1].id , firstSeenId: rows[0].id })
       );
     }
 
     // If there are more comments before this batch, send prevToken
     if (firstSeenId > 0) {
       prevToken = encryptText(
-        JSON.stringify({ firstSeenId: rows[0].id })
+        JSON.stringify({ firstSeenId: rows[0].id , lastSeenId: rows[rows.length - 1].id})
       );
     }
 
