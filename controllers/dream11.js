@@ -65,6 +65,16 @@ router.post("/createTeam", verifyToken, async (req, res) => {
   const connection = await pool.getConnection();
 
   try {
+    const [existingTeams] = await connection.query(
+      "SELECT id FROM dream11_players WHERE user_id = ?",
+      [userId]
+    );
+    if (existingTeams.length > 0) {
+      return res
+        .status(400)
+        .json({ message: "You have already created a team" });
+    };
+
     const [existingPlayers] = await connection.query(
       "SELECT id FROM players WHERE id IN (?)",
       [playerIds]
