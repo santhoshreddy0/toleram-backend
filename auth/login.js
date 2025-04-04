@@ -36,12 +36,13 @@ router.post('/', async (req, res) => {
       // Verify the password
       if (password === user.password) {
         // Generate a JWT token with the user ID and email
-        const token = generateToken({ id: user.id, email: user.email , role: user.role , name: user.name});
+        const token = generateToken({ id: user.id, email: user.email , role: user.role , name: user.name , logo: user.user_logo});
         res.json({ 
           "id" : user.id,
           "name":user.name,
           "email":user.email,
           "role": user.role,
+          "logo": user.user_logo,
           token });
       } else {
         res.status(401).json({ message: 'Invalid credentials' });

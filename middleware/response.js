@@ -11,3 +11,7 @@ function sendResponse({ code, message = "", data = null, error = [] }) {
   
 module.exports = sendResponse;
   
+
+export const getImageUrl =(imageKey)=>{
+  return `https://toleram.s3.ap-south-1.amazonaws.com/${imageKey}`
+}

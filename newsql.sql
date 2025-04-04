@@ -1002,4 +1002,7 @@ CREATE TABLE comments (
 
 ALTER TABLE comments ADD COLUMN created_at DATETIME, ADD COLUMN likes_count INT;
 
+-- update users table with coloumn user_logo
+ALTER TABLE users ADD COLUMN user_logo VARCHAR(225) DEFAULT NULL;
+
 

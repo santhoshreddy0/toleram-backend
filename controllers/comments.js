@@ -9,6 +9,47 @@ function validateString(string) {
     if (!string || string.trim().length === 0) return false;
     return true;
 }
+
+router.get('/getRoom/:roomName', verifyToken, async (req, res) => {
+  const { roomName } = req.params;
+
+  if (!roomName) {
+    return res.status(400).json({ message: "Room name cannot be empty" });
+  }
+
+  try {
+    const [roomRows] = await pool.execute(
+      "SELECT * FROM rooms WHERE name = ?",
+      [roomName]
+    );
+
+    if (roomRows.length > 0) {
+      // If the room exists, send the room ID and name
+      const room = roomRows[0];
+      return res.status(200).json({
+        id: room.id,
+        name: room.name
+      });
+    } else {
+      // If the room doesn't exist, create a new room
+      const [insertRoom] = await pool.execute(
+        "INSERT INTO rooms (name) VALUES (?)",
+        [roomName]
+      );
+      const newRoomId = insertRoom.insertId;
+
+      return res.status(201).json({
+        id: newRoomId,
+        name: roomName
+      });
+    }
+  } catch (error) {
+    console.error("Error executing query", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+
 router.post("/rooms/:roomdId", verifyToken, async (req, res) => {
     const { roomdId } = req.params;
     const { comment } = req.body;
@@ -35,12 +76,12 @@ router.post("/rooms/:roomdId", verifyToken, async (req, res) => {
             return res.status(404).json({ message: "Room not found" });
         }
 
-        await pool.execute(
+        const [insertComment] = await pool.execute(
             "INSERT INTO comments (room_id, user_id, user_name, comment, created_at, likes_count) VALUES (?, ?, ?, ?, ?, ?)",
             [roomdId, user_id, user_name, comment, created_at, 0]
         );
 
-        res.status(200).json({ message: "Comment added successfully" });
+        res.status(200).json({ message: "Comment added successfully", id: insertComment.insertId });
 
     } catch (error) {
         console.error("Error executing query", error);
@@ -51,7 +92,7 @@ router.post("/rooms/:roomdId", verifyToken, async (req, res) => {
 
 
 
-ITEMS_PER_PAGE = 10;
+const ITEMS_PER_PAGE = parseInt(process.env.ITEMS_PER_PAGE, 10) || 50;
 const SECRET_KEY = crypto.createHash('sha256').update(process.env.SECRET_KEY).digest();
 const IV_LENGTH = 16;
 
@@ -85,12 +126,12 @@ router.get("/rooms/:roomId", async (req, res) => {
       lastSeenId = parseInt(state.lastSeenId, 10) || 0;
       firstSeenId = parseInt(state.firstSeenId, 10) || 0;
     } catch (err) {
-    //   return res.status(400).json({ message: "Invalid token" });
+      // return res.status(400).json({ message: "Invalid token" });
     }
   }
 
   if (isNaN(roomId)){
-    return res.status(400).json({ message: "Invalid roomId" });
+    return res.status(400).json({ message: "Invalid room id" });
   }
 
   try {
@@ -111,21 +152,30 @@ router.get("/rooms/:roomId", async (req, res) => {
       return res.status(404).json({ message: "No comments found" });
     }
 
-    const nextToken = encryptText(
-      JSON.stringify({ lastSeenId: rows[rows.length - 1].id })
-    );
+    let nextToken = null;
+    let prevToken = null;
 
-    const prevToken = encryptText(
-      JSON.stringify({ firstSeenId: rows[0].id })
-    );
+    // If there are more comments after this batch, send nextToken
+    if (rows.length === ITEMS_PER_PAGE) {
+      nextToken = encryptText(
+        JSON.stringify({ lastSeenId: rows[rows.length - 1].id , firstSeenId: rows[0].id })
+      );
+    }
 
-    
+    // If there are more comments before this batch, send prevToken
+    if (firstSeenId > 0) {
+      prevToken = encryptText(
+        JSON.stringify({ firstSeenId: rows[0].id , lastSeenId: rows[rows.length - 1].id})
+      );
+    }
+
     return res.status(200).json({
-      comments:rows,
+      comments: rows,
       nextToken,
       prevToken,
     });
   } catch (error) {
+    console.error("Error executing query", error);
     return res.status(500).json({ message: "Internal server error" });
   }
 });
