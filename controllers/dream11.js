@@ -189,18 +189,24 @@ router.get("/team", async (req, res) => {
 
   try {
     const [teamPlayers] = await pool.execute(
-      `select
-	dp.player_id AS player_id, p.player_logo,
-  p.name AS player_name,
-  dp.role_type AS player_role,
-  IFNULL(SUM(mpm.points),0) AS points 
-from dream11_players dp 
-LEFT JOIN match_player_mapping mpm 
-	ON dp.player_id = mpm.player_id
-LEFT JOIN players p 
-	ON p.id = dp.player_id
-where dp.user_id = ?
-GROUP BY dp.player_id, dp.role_type `,
+      `SELECT
+        dp.player_id AS player_id, 
+        p.player_logo,
+        p.name AS player_name,
+        dp.role_type AS player_role,
+        IFNULL(SUM(mpm.points), 0) * 
+          CASE
+            WHEN dp.role_type = 'captain' THEN 2
+            WHEN dp.role_type = 'vice-captain' THEN 1.5
+            ELSE 1
+          END AS points
+      FROM dream11_players dp 
+      LEFT JOIN match_player_mapping mpm 
+        ON dp.player_id = mpm.player_id
+      LEFT JOIN players p 
+        ON p.id = dp.player_id
+      WHERE dp.user_id = ?
+      GROUP BY dp.player_id, dp.role_type`,
       [userId]
     );
 
