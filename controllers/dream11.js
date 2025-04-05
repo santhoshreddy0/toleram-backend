@@ -134,8 +134,18 @@ router.put("/updateTeam", verifyToken, async (req, res) => {
   try {
     await connection.beginTransaction();
 
-    for (let player of players) {
-      const { id, playerId, roleType } = player;
+    const [existingIds] = await connection.execute(
+      `SELECT id FROM dream11_players WHERE user_id = ?`,
+      [userId]
+    );
+
+    if (existingIds.length !== 11) {
+      return res.status(400).json({ message: "You must have exactly 11 players" });
+    }
+
+    for (let i = 0; i < players.length; i++) {
+      const { playerId, roleType } = players[i];
+      const  {id} = existingIds[i];
 
       if (
         !id ||
