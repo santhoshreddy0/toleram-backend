@@ -38,7 +38,7 @@ app.use("/history", betHistory);
 app.use("/teams", teamsRouter);
 app.use("/media", mediaRouter);
 app.use("/players", playersRouter);
-app.use('/dream11', dream11);
+app.use('/dream11', verifyToken, dream11);
 app.use('/comments', commentsRouter);
 app.use('/rooms', roomsRouter);
 app.use("/user", verifyToken, userRouter);
