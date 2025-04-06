@@ -1190,4 +1190,40 @@ router.patch("/round-questions/:questionId/correctOption", async (req, res) => {
   }
 });
 
+router.get("/rounds/:id/questions", async (req, res) => {
+  try {
+    const { id: round_id } = req.params;
+
+    const roundQuery = "SELECT * FROM rounds WHERE id = ?";
+    let [roundRows] = await pool.execute(roundQuery, [round_id]);
+    if (roundRows.length == 0) {
+      return res.status(404).json({ message: "Round not found" });
+    }
+    roundRows = roundRows[0];
+
+    const query = "SELECT * FROM round_questions WHERE round_id = ?";
+    const [rows] = await pool.execute(query, [round_id]);
+
+    if (rows.length == 0) {
+      return res.status(404).json({ message: "Questions not found" });
+    }
+
+    const questions = rows.map((row) => {
+      return {
+        id: row.id,
+        question: row.question,
+        canShow: row.can_show,
+        options: jsonParse(row.options),
+        correct_option: row.correct_option,
+      };
+    });
+
+    res.json({ questions: questions });
+  } catch (error) {
+    console.error("Error executing query", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+
 module.exports = router;

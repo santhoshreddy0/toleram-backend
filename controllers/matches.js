@@ -165,10 +165,12 @@ router.put("/:id/bet", verifyToken, async (req, res) => {
     }
 
     const questionMap = {};
+    let totalAmount = 0;
     questionRows.forEach((row) => {
       let data = {};
       data["option"] = bets[row.id]?.option || null;
       data["amount"] = bets[row.id]?.amount || 0;
+      totalAmount += data.amount;
       questionMap[row.id] = data;
     });
 
@@ -179,18 +181,20 @@ router.put("/:id/bet", verifyToken, async (req, res) => {
 
     if (existing_bets.length === 0) {
       const postQuery =
-        "INSERT INTO match_bets (user_id, match_id,answers) VALUES (?, ? , ?) ";
+        "INSERT INTO match_bets (user_id, match_id,answers, total_amount) VALUES (?, ? , ?, ?) ";
       await pool.query(postQuery, [
         user_id,
         match_id,
         JSON.stringify(questionMap),
+        totalAmount
       ]);
       return res.status(200).json({ message: "Bet placed successfully" });
     } else {
       const putQuery =
-        "UPDATE match_bets SET answers = ? WHERE user_id = ? AND match_id = ?";
+        "UPDATE match_bets SET answers = ?, total_amount = ? WHERE user_id = ? AND match_id = ?";
       await pool.query(putQuery, [
         JSON.stringify(questionMap),
+        totalAmount,
         user_id,
         match_id,
       ]);

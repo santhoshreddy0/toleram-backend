@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const pool = require("../db");
-const { verifyToken, verifyRole } = require("../middleware/middleware");
+const { verifyToken, tournament } = require("../middleware/middleware");
 
 class TransactionError extends Error {
   constructor(message) {
@@ -22,7 +22,7 @@ function validatePlayerRole(players) {
   return captainCount === 1 && viceCaptainCount === 1;
 }
 
-router.post("/createTeam", verifyToken, async (req, res) => {
+router.post("/createTeam", verifyToken, tournament, async (req, res) => {
   const { players } = req.body;
 
   if (
@@ -112,7 +112,7 @@ router.post("/createTeam", verifyToken, async (req, res) => {
   }
 });
 
-router.put("/updateTeam", verifyToken, async (req, res) => {
+router.put("/updateTeam", verifyToken, tournament, async (req, res) => {
   const { players } = req.body;
 
   if (!players || !Array.isArray(players) || players.length != 11) {

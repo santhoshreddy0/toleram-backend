@@ -1006,4 +1006,7 @@ ALTER TABLE comments ADD COLUMN created_at DATETIME, ADD COLUMN likes_count INT;
 -- update users table with coloumn user_logo
 ALTER TABLE users ADD COLUMN user_logo VARCHAR(225) DEFAULT NULL;
 
+ALTER TABLE match_bets ADD total_amount DECIMAL(10, 2) DEFAULT 0.00;
+ALTER TABLE round_bets ADD total_amount DECIMAL(10, 2) DEFAULT 0.00;
+
 
