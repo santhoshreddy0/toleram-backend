@@ -1165,7 +1165,7 @@ router.patch("/round-questions/:questionId/correctOption", async (req, res) => {
       return res.status(400).json({ message: "Question not found" });
     }
 
-    const options = JSON.parse(questionRows[0].options);
+    const options = jsonParse(questionRows[0].options);
     const validOption = options.some(option => option.option === correctOption);
 
     if (!validOption) {
