@@ -188,10 +188,11 @@ router.patch("/matches/:id", async (req, res) => {
   }
 });
 
-router.put("/matches/:matchId/process-bet", async (req, res) => {
+router.patch("/matches/:matchId/process-bet", async (req, res) => {
   const { betStatus } = req.body;
+  const { matchId } = req.params;
 
-  if (betStatus) {
+  if (!betStatus) {
     return res.status(400).json({ message: "Please provide the bet status!" });
   }
 
@@ -211,8 +212,8 @@ router.put("/matches/:matchId/process-bet", async (req, res) => {
       return res.status(404).json({ message: "Match not found." });
     }
 
-    const query = `UPDATE matches SET bet_status  WHERE id = ? `;
-    await pool.execute(query, betStatus);
+    const query = `UPDATE matches SET bet_status = ?  WHERE id = ? `;
+    await pool.execute(query, [betStatus, matchId]);
 
     res.json({
       message: "Match bet status updated successfully"
@@ -324,7 +325,7 @@ router.post("/matches/:matchId/addQuestion", async (req, res) => {
   }
 });
 
-router.patch("/questions/:questionId", async (req, res) => {
+router.patch("/match-questions/:questionId", async (req, res) => {
   const { question, canShow, options } = req.body;
   const {questionId } = req.params;
 
@@ -337,6 +338,10 @@ router.patch("/questions/:questionId", async (req, res) => {
 
   if (options && (!Array.isArray(options) || options.length === 0)) {
     validationErrors.push("Options should be an array.");
+  }
+
+  if(canShow && !["0", "1"].includes(canShow)){
+    validationErrors.push("Invalid value for canShow. Expected '0' or '1'");    
   }
 
   if (validationErrors.length > 0) {
@@ -378,7 +383,7 @@ router.patch("/questions/:questionId", async (req, res) => {
     const updateFields = [];
     const updateValues = [];
 
-    if (question !== undefined) {
+    if (question !== undefined && validateString(question)) {
       updateFields.push("question = ?");
       updateValues.push(question);
     }
@@ -415,7 +420,7 @@ router.patch("/questions/:questionId", async (req, res) => {
   }
 });
 
-router.patch("/questions/:questionId/correctOption", async (req, res) => {
+router.patch("/match-questions/:questionId/correctOption", async (req, res) => {
   const { correctOption } = req.body;
   const { questionId } = req.params;
 
@@ -829,6 +834,355 @@ router.post("/teams/:teamId", async (req, res) => {
         imageUrl,
         teamId,
       },
+    });
+  } catch (error) {
+    console.error("Error executing query", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+//rounds
+router.post("/rounds", async (req, res) => {
+  const { roundName } = req.body;
+
+  if (!validateName(roundName)) {
+    return res.status(400).json({ message: "Invalid round name" });
+  }
+  
+  try {
+    const [roundRows] = await pool.execute(
+      "SELECT * FROM rounds WHERE round_name = ?",
+      [roundName]
+    );
+    if (roundRows.length > 0) {
+      return res
+        .status(400)
+        .json({ message: "Round with the name already exists" });
+    }
+    const [insertResult] = await pool.execute(
+      "INSERT INTO rounds (round_name) VALUES (?)",
+      [roundName]
+    );
+
+    res.json({
+      message: "Round created successfully",
+      roundId: insertResult.insertId,
+    });
+  } catch (error) {
+    console.error("Error executing query", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+router.patch("/rounds/:roundId", async (req, res) => {
+  const { roundId } = req.params;
+  const { roundName, canBet, canShow } = req.body;
+
+  if (roundName && !validateName(roundName)) {
+    return res.status(400).json({ message: "Invalid round name" });
+  }
+
+  if (canBet !== undefined && !["0", "1"].includes(canBet)) {
+    return res.status(400).json({ message: "Invalid value for canBet. Expected '0' or '1'" });
+  }
+
+  if (canShow !== undefined && !["0", "1"].includes(canShow)) {
+    return res.status(400).json({ message: "Invalid value for canShow. Expected '0' or '1'" });
+  }
+
+  try {
+    const [roundRows] = await pool.execute(
+      "SELECT * FROM rounds WHERE id = ?",
+      [roundId]
+    );
+
+    if (roundRows.length === 0) {
+      return res.status(404).json({ message: "Round not found" });
+    }
+
+    const updateFields = [];
+    const updateValues = [];
+
+    if (roundName) {
+      updateFields.push("round_name = ?");
+      updateValues.push(roundName);
+    }
+    if (canBet !== undefined && ["0", "1"].includes(canBet)) {
+      updateFields.push("can_bet = ?");
+      updateValues.push(canBet);
+    }
+    if (canShow !== undefined && ["0", "1"].includes(canShow)) {
+      updateFields.push("can_show = ?");
+      updateValues.push(canShow);
+    }
+
+    if (updateFields.length === 0) {
+      return res.status(400).json({ message: "No fields to update" });
+    }
+
+    updateValues.push(roundId);
+    const [updateResult] = await pool.execute(
+      `UPDATE rounds SET ${updateFields.join(", ")} WHERE id = ?`,
+      updateValues
+    );
+
+    if (updateResult.affectedRows === 0) {
+      return res.status(400).json({ message: "Update failed" });
+    }
+
+    res.json({
+      message: "Round updated successfully",
+    });
+  } catch (error) {
+    console.error("Error executing query", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+router.patch("/rounds/:roundId/process-bet", async (req, res) => {
+  const { roundId } = req.params;
+  const { betStatus } = req.body;
+
+  if (!betStatus) {
+    return res.status(400).json({ message: "Please provide the bet status!" });
+  }
+
+  if (
+    betStatus &&
+    !["dont_process", "process", "completed"].includes(betStatus)
+  ) {
+    return res.status(400).json({ message: "Invalid bet status" });
+  }
+  try{
+    const [roundRows] = await pool.execute(
+      "SELECT * FROM rounds WHERE id = ?",
+      [roundId]
+    );
+
+    if (roundRows.length === 0) {
+      return res.status(404).json({ message: "Round not found." });
+    }
+
+    const query = `UPDATE rounds SET bet_status = ? WHERE id = ? `;
+    await pool.execute(query, [betStatus, roundId]);
+
+    res.json({
+      message: "Round bet status updated successfully"
+    });
+
+
+  }catch(error){
+    console.error("Error executing query", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+
+});
+
+router.post("/rounds/:roundId/addQuestion", async (req, res) => {
+  const { question, options } = req.body;
+  const { roundId } = req.params;
+
+  const validationErrors = [];
+  const idsSet = new Set();
+
+  if (!roundId) {
+    validationErrors.push("Round ID is required.");
+  }
+  if (!question) {
+    validationErrors.push("Question is required.");
+  }
+  if (!options || !Array.isArray(options) || options.length === 0) {
+    validationErrors.push("Options should be an array.");
+  }
+
+  if (validationErrors.length > 0) {
+    return res.status(400).json({ errors: validationErrors });
+  }
+
+  try {
+    const [roundRows] = await pool.execute(
+      "SELECT * FROM rounds WHERE id = ?",
+      [roundId]
+    );
+
+    if (roundRows.length === 0) {
+      return res.status(400).json({ message: "Round not found" });
+    }
+
+    options.forEach((option, index) => {
+      if (!option.id || !option.option || !option.odds) {
+        validationErrors.push(
+          `Option at index ${index} is missing id, option, or odds.`
+        );
+      }
+      if (idsSet.has(option.id)) {
+        validationErrors.push(
+          `Option at index ${index} has a duplicate id: ${option.id}.`
+        );
+      } else {
+        idsSet.add(option.id);
+      }
+    });
+
+    if (validationErrors.length > 0) {
+      return res.status(400).json({ errors: validationErrors });
+    }
+
+    const [insertResult] = await pool.execute(
+      "INSERT INTO round_questions (round_id, question, can_show, options) VALUES (?, ?, ?, ?)",
+      [roundId, question, "1", options]
+    );
+
+    res.json({
+      message: "Question added successfully",
+      questionId: insertResult.insertId,
+    });
+  } catch (error) {
+    console.error("Error executing query", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+router.patch("/round-questions/:questionId", async (req, res) => {
+  const { question, canShow, options } = req.body;
+  const { questionId } = req.params;
+
+  const validationErrors = [];
+  const idsSet = new Set();
+
+  if (!questionId) {
+    validationErrors.push("Question ID is required.");
+  }
+
+  if (options && (!Array.isArray(options) || options.length === 0)) {
+    validationErrors.push("Options should be an array.");
+  }
+
+  if (canShow && !["0", "1"].includes(canShow)) {
+    validationErrors.push("Invalid value for canShow. Expected '0' or '1'");
+  }
+
+  if (validationErrors.length > 0) {
+    return res.status(400).json({ errors: validationErrors });
+  }
+
+  try {
+    const [questionRows] = await pool.execute(
+      "SELECT * FROM round_questions WHERE id = ?",
+      [questionId]
+    );
+
+    if (questionRows.length === 0) {
+      return res.status(400).json({ message: "Question not found" });
+    }
+
+    if (options) {
+      options.forEach((option, index) => {
+        if (!option.id || !option.option || !option.odds) {
+          validationErrors.push(
+            `Option at index ${index} is missing id, option, or odds.`
+          );
+        }
+        if (idsSet.has(option.id)) {
+          validationErrors.push(
+            `Option at index ${index} has a duplicate id: ${option.id}.`
+          );
+        } else {
+          idsSet.add(option.id);
+        }
+      });
+    }
+
+    if (validationErrors.length > 0) {
+      return res.status(400).json({ errors: validationErrors });
+    }
+
+    const updateFields = [];
+    const updateValues = [];
+
+    if (question !== undefined && validateString(question)) {
+      updateFields.push("question = ?");
+      updateValues.push(question);
+    }
+
+    if (canShow !== undefined) {
+      updateFields.push("can_show = ?");
+      updateValues.push(canShow);
+    }
+
+    if (options !== undefined) {
+      updateFields.push("options = ?");
+      updateValues.push(options);
+    }
+
+    if (updateFields.length === 0) {
+      return res.status(400).json({ message: "No fields to update" });
+    }
+
+    const [updateResult] = await pool.execute(
+      `UPDATE round_questions SET ${updateFields.join(", ")} WHERE id = ?`,
+      [...updateValues, questionId]
+    );
+
+    if (updateResult.affectedRows === 0) {
+      return res.status(400).json({ message: "No rows updated" });
+    }
+
+    res.json({
+      message: "Question updated successfully",
+    });
+  } catch (error) {
+    console.error("Error executing query", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+router.patch("/round-questions/:questionId/correctOption", async (req, res) => {
+  const { correctOption } = req.body;
+  const { questionId } = req.params;
+
+  const validationErrors = [];
+
+  if (!questionId) {
+    validationErrors.push("Question ID is required.");
+  }
+
+  if (!correctOption) {
+    validationErrors.push("Correct option is required.");
+  }
+
+  if (validationErrors.length > 0) {
+    return res.status(400).json({ errors: validationErrors });
+  }
+
+  try {
+    const [questionRows] = await pool.execute(
+      "SELECT * FROM round_questions WHERE id = ?",
+      [questionId]
+    );
+
+    if (questionRows.length === 0) {
+      return res.status(400).json({ message: "Question not found" });
+    }
+
+    const options = JSON.parse(questionRows[0].options);
+    const validOption = options.some(option => option.option === correctOption);
+
+    if (!validOption) {
+      return res.status(400).json({ message: "Invalid option provided." });
+    }
+
+    const [updateResult] = await pool.execute(
+      "UPDATE round_questions SET correct_option = ? WHERE id = ?",
+      [correctOption, questionId]
+    );
+
+    if (updateResult.affectedRows === 0) {
+      return res.status(400).json({ message: "No rows updated" });
+    }
+
+    res.json({
+      message: "Correct option updated successfully",
     });
   } catch (error) {
     console.error("Error executing query", error);
