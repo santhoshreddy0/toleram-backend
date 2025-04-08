@@ -9,5 +9,6 @@ router.use("/round-questions", require("./roundQuestions"));
 router.use("/teams", require("./teams"));
 router.use("/players", require("./players"));
 router.use("/analytics", require("./analytics"));
+router.use("/media", require("./media"));
 
 module.exports = router;

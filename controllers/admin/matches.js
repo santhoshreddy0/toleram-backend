@@ -243,7 +243,6 @@ router.post("/", async (req, res) => {
       if (rows.length == 0) {
         return res.status(404).json({ message: "Questions not found" });
       }
-      console.log("rows", rows);
       const questions = rows.map((row) => {
         return {
           id: row.id,
@@ -389,7 +388,6 @@ router.post("/", async (req, res) => {
         "SELECT * FROM match_player_mapping WHERE match_id = ? AND player_id = ?",
         [matchId, playerId]
       );
-      console.log(existingPlayer, "existing player");
       // Calculate points
       const points =
         (score || existingPlayer[0].player_score || 0) +

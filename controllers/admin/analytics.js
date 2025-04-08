@@ -161,7 +161,7 @@ router.get("/users/:userId/bets", async (req, res) => {
             question: question.question,
             options: options,
             choseOption: userAnswer?.option || null,
-            correct: userAnswer?.option === question.correct_option ? 'Yes' : 'No',
+            correct: (question.correct_option && userAnswer?.option == question.correct_option) ? 'Yes' : 'No',
             betAmount: userAnswer.amount || 0,
             correctOption: question.correct_option
           };

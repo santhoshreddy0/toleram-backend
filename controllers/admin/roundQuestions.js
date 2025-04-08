@@ -283,7 +283,7 @@ router.patch("/:questionId/correctOption", async (req, res) => {
     }
 
     const options = jsonParse(questionRows[0].options);
-    const validOption = options.some(option => option.option === correctOption);
+    const validOption = options.some(option => option.id === correctOption);
 
     if (!validOption) {
       return res.status(400).json({ message: "Invalid option provided." });
