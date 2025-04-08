@@ -175,7 +175,7 @@ router.get("/users/:userId/bets", async (req, res) => {
         };
       }) : [],
 
-      rounds: roundBetsRows.length > 0 ? roundBetsRows.map(roundBet => {
+      roundBets: roundBetsRows.length > 0 ? roundBetsRows.map(roundBet => {
         const roundQuestions = roundQuestionsRows.map(question => {
           const userAnswer = roundBet.answers ? jsonParse(roundBet.answers)[question.id] : {};
           const options = Array.isArray(question.options) ? question.options : JSON.parse(question.options);
