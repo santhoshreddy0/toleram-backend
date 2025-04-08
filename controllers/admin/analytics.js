@@ -89,12 +89,14 @@ router.get("/users/:userId/bets", async (req, res) => {
     const [roundBetsRows] = await pool.execute(roundQuery, [userId]);
 
     if (matchBetsRows.length === 0 && roundBetsRows.length === 0) {
-      return res.status(404).json({ message: "No bets found for this user (matches and rounds)" });
+      return res
+        .status(404)
+        .json({ message: "No bets found for this user (matches and rounds)" });
     }
 
     let matchQuestionsRows = [];
     if (matchBetsRows.length > 0) {
-      const matchIds = matchBetsRows.map(row => row.match_id);
+      const matchIds = matchBetsRows.map((row) => row.match_id);
       const matchQuestionsQuery = `
         SELECT 
             id,
@@ -110,7 +112,7 @@ router.get("/users/:userId/bets", async (req, res) => {
 
     let roundQuestionsRows = [];
     if (roundBetsRows.length > 0) {
-      const roundIds = roundBetsRows.map(row => row.round_id);
+      const roundIds = roundBetsRows.map((row) => row.round_id);
       const roundQuestionsQuery = `
         SELECT 
             id,
@@ -146,64 +148,98 @@ router.get("/users/:userId/bets", async (req, res) => {
       [userId]
     );
 
-    const totalPoints = teamPlayers && teamPlayers.length > 0
-      ? teamPlayers.reduce((sum, player) => sum + player.points, 0)
-      : 0;
+    const totalPoints =
+      teamPlayers && teamPlayers.length > 0
+        ? teamPlayers.reduce((sum, player) => sum + player.points, 0)
+        : 0;
 
     const result = {
-      matchBets: matchBetsRows.length > 0 ? matchBetsRows.map(matchBet => {
-        const matchQuestions = matchQuestionsRows.map(question => {
-          const userAnswer = matchBet.answers ? jsonParse(matchBet.answers)[question.id] : {};
-          console.log(userAnswer);
-          const options = Array.isArray(question.options) ? question.options : JSON.parse(question.options);
-          
-          return {
-            questionId: question.id,
-            question: question.question,
-            options: options,
-            choseOption: userAnswer?.option || null,
-            correct: (question.correct_option && userAnswer?.option == question.correct_option) ? 'Yes' : 'No',
-            betAmount: userAnswer?.amount || 0,
-            correctOption: question.correct_option
-          };
-        });
+      matchBets:
+        matchBetsRows.length > 0
+          ? matchBetsRows.map((matchBet) => {
+              const matchQuestions = matchQuestionsRows
+                .filter((question) => {
+                  const userAnswer = matchBet.answers
+                    ? jsonParse(matchBet.answers)[question.id]
+                    : {};
+                  return userAnswer && userAnswer.option;
+                })
+                .map((question) => {
+                  const userAnswer = matchBet.answers
+                    ? jsonParse(matchBet.answers)[question.id]
+                    : {};
+                  const options = Array.isArray(question.options)
+                    ? question.options
+                    : JSON.parse(question.options);
+                  return {
+                    questionId: question.id,
+                    question: question.question,
+                    options: options,
+                    choseOption: userAnswer?.option || null,
+                    correct:
+                      question.correct_option &&
+                      userAnswer?.option == question.correct_option
+                        ? "Yes"
+                        : "No",
+                    betAmount: userAnswer?.amount || 0,
+                    correctOption: question.correct_option,
+                  };
+                });
 
-        return {
-          matchId: matchBet.match_id,
-          betAmount: matchBet.bet_amount,
-          bets: matchQuestions,
-          points: matchBet.points || 0
-        };
-      }) : [],
+              return {
+                matchId: matchBet.match_id,
+                betAmount: matchBet.bet_amount,
+                bets: matchQuestions,
+                points: matchBet.points || 0,
+              };
+            })
+          : [],
 
-      roundBets: roundBetsRows.length > 0 ? roundBetsRows.map(roundBet => {
-        const roundQuestions = roundQuestionsRows.map(question => {
-          const userAnswer = roundBet.answers ? jsonParse(roundBet.answers)[question.id] : {};
-          const options = Array.isArray(question.options) ? question.options : JSON.parse(question.options);
+      roundBets:
+        roundBetsRows.length > 0
+          ? roundBetsRows.map((roundBet) => {
+              const roundQuestions = roundQuestionsRows
+                .filter((question) => {
+                  const userAnswer = roundBet.answers
+                    ? jsonParse(roundBet.answers)[question.id]
+                    : {};
+                  return userAnswer && userAnswer.option;
+                })
+                .map((question) => {
+                  const userAnswer = roundBet.answers
+                    ? jsonParse(roundBet.answers)[question.id]
+                    : {};
+                  const options = Array.isArray(question.options)
+                    ? question.options
+                    : JSON.parse(question.options);
+                  return {
+                    questionId: question.id,
+                    question: question.question,
+                    options: options,
+                    choseOption: userAnswer?.option || null,
+                    correct:
+                      question.correct_option &&
+                      userAnswer?.option == question.correct_option
+                        ? "Yes"
+                        : "No",
+                    betAmount: userAnswer?.amount || 0,
+                    correctOption: question.correct_option,
+                  };
+                });
 
-          return {
-            questionId: question.id,
-            question: question.question,
-            options: options,
-            choseOption: userAnswer?.option || null,
-            correct: (question.correct_option && userAnswer?.option == question.correct_option)? 'Yes' : 'No',
-            betAmount: userAnswer?.amount || 0,
-            correctOption: question.correct_option
-          };
-        });
-
-        return {
-          roundId: roundBet.round_id,
-          betAmount: roundBet.bet_amount,
-          bets: roundQuestions,
-          points: roundBet.points || 0
-        };
-      }) : [],
+              return {
+                roundId: roundBet.round_id,
+                betAmount: roundBet.bet_amount,
+                bets: roundQuestions,
+                points: roundBet.points || 0,
+              };
+            })
+          : [],
 
       dream11: {
         team: teamPlayers,
-        totalPoints
-      }
+        totalPoints,
+      },
     };
 
     res.status(200).json(result);
@@ -212,7 +248,6 @@ router.get("/users/:userId/bets", async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 });
-
 
 router.get("/bets", async (req, res) => {
   try {
