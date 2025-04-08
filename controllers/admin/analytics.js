@@ -154,6 +154,7 @@ router.get("/users/:userId/bets", async (req, res) => {
       matchBets: matchBetsRows.length > 0 ? matchBetsRows.map(matchBet => {
         const matchQuestions = matchQuestionsRows.map(question => {
           const userAnswer = matchBet.answers ? jsonParse(matchBet.answers)[question.id] : {};
+          console.log(userAnswer);
           const options = Array.isArray(question.options) ? question.options : JSON.parse(question.options);
           
           return {
@@ -162,7 +163,7 @@ router.get("/users/:userId/bets", async (req, res) => {
             options: options,
             choseOption: userAnswer?.option || null,
             correct: (question.correct_option && userAnswer?.option == question.correct_option) ? 'Yes' : 'No',
-            betAmount: userAnswer.amount || 0,
+            betAmount: userAnswer?.amount || 0,
             correctOption: question.correct_option
           };
         });
@@ -185,8 +186,8 @@ router.get("/users/:userId/bets", async (req, res) => {
             question: question.question,
             options: options,
             choseOption: userAnswer?.option || null,
-            correct: userAnswer?.option === question.correct_option ? 'Yes' : 'No',
-            betAmount: userAnswer.amount || 0,
+            correct: (question.correct_option && userAnswer?.option == question.correct_option)? 'Yes' : 'No',
+            betAmount: userAnswer?.amount || 0,
             correctOption: question.correct_option
           };
         });
