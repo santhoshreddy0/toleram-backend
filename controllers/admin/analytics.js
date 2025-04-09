@@ -63,9 +63,21 @@ router.get("/rounds/:roundId/bets", async (req, res) => {
   }
 });
 
-router.get("/users/:userId/bets", async (req, res) => {
-  const { userId } = req.params;
+router.get("/users/bets", async (req, res) => {
+  const { email } = req.query;
   try {
+    const userSearchquery = `
+          SELECT *
+          FROM users
+          WHERE email = ?
+        `;
+
+    const [userRows] = await pool.execute(userSearchquery, [email]);
+    if (userRows.length === 0) {
+      return res.status(404).json({ message: "No user found with the email" });
+    }
+
+    const userId = userRows[0].id;
     const query = `
       SELECT 
           match_bets.match_id,
@@ -152,8 +164,10 @@ router.get("/users/:userId/bets", async (req, res) => {
       teamPlayers && teamPlayers.length > 0
         ? teamPlayers.reduce((sum, player) => sum + player.points, 0)
         : 0;
+    const { password, ...userWithoutPassword } = userRows[0];
 
     const result = {
+      user: userWithoutPassword,
       matchBets:
         matchBetsRows.length > 0
           ? matchBetsRows.map((matchBet) => {

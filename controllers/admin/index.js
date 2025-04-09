@@ -10,5 +10,6 @@ router.use("/teams", require("./teams"));
 router.use("/players", require("./players"));
 router.use("/analytics", require("./analytics"));
 router.use("/media", require("./media"));
+router.use("/users", require("./users"));
 
 module.exports = router;
