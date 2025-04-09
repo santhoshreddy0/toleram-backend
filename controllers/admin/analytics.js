@@ -103,7 +103,7 @@ router.get("/users/bets", async (req, res) => {
     if (matchBetsRows.length === 0 && roundBetsRows.length === 0) {
       return res
         .status(404)
-        .json({ message: "No bets found for this user (matches and rounds)" });
+        .json({ message: "No bets found for this user" });
     }
 
     let matchQuestionsRows = [];
