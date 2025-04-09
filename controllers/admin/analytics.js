@@ -101,30 +101,31 @@ router.get("/users/bets", async (req, res) => {
     const [roundBetsRows] = await pool.execute(roundQuery, [userId]);
 
     if (matchBetsRows.length === 0 && roundBetsRows.length === 0) {
-      return res
-        .status(404)
-        .json({ message: "No bets found for this user" });
+      return res.status(404).json({ message: "No bets found for this user" });
     }
 
     let matchQuestionsRows = [];
     if (matchBetsRows.length > 0) {
       const matchIds = matchBetsRows.map((row) => row.match_id);
+      const placeholders = matchIds.map(() => "?").join(", ");
+
       const matchQuestionsQuery = `
-        SELECT 
-            id,
-            match_id,
-            question,
-            options,
-            correct_option
-        FROM match_questions
-        WHERE match_id IN (?)
-      `;
+  SELECT 
+      id,
+      match_id,
+      question,
+      options,
+      correct_option
+  FROM match_questions
+  WHERE match_id IN (${placeholders})
+`;
       [matchQuestionsRows] = await pool.execute(matchQuestionsQuery, matchIds);
     }
 
     let roundQuestionsRows = [];
     if (roundBetsRows.length > 0) {
       const roundIds = roundBetsRows.map((row) => row.round_id);
+      const placeholders = roundIds.map(() => "?").join(", ");
       const roundQuestionsQuery = `
         SELECT 
             id,
@@ -133,7 +134,7 @@ router.get("/users/bets", async (req, res) => {
             options,
             correct_option
         FROM round_questions
-        WHERE round_id IN (?)
+        WHERE round_id IN (${placeholders})
       `;
       [roundQuestionsRows] = await pool.execute(roundQuestionsQuery, roundIds);
     }
