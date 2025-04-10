@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const pool = require("../db");
-const { verifyToken, verifyRole } = require("../middleware/middleware");
+const { verifyToken, tournament } = require("../middleware/middleware");
 
 class TransactionError extends Error {
   constructor(message) {
@@ -22,7 +22,7 @@ function validatePlayerRole(players) {
   return captainCount === 1 && viceCaptainCount === 1;
 }
 
-router.post("/createTeam", verifyToken, async (req, res) => {
+router.post("/createTeam", verifyToken, tournament, async (req, res) => {
   const { players } = req.body;
 
   if (
@@ -65,6 +65,16 @@ router.post("/createTeam", verifyToken, async (req, res) => {
   const connection = await pool.getConnection();
 
   try {
+    const [existingTeams] = await connection.query(
+      "SELECT id FROM dream11_players WHERE user_id = ?",
+      [userId]
+    );
+    if (existingTeams.length > 0) {
+      return res
+        .status(400)
+        .json({ message: "You have already created a team" });
+    };
+
     const [existingPlayers] = await connection.query(
       "SELECT id FROM players WHERE id IN (?)",
       [playerIds]
@@ -102,7 +112,7 @@ router.post("/createTeam", verifyToken, async (req, res) => {
   }
 });
 
-router.put("/updateTeam", verifyToken, async (req, res) => {
+router.put("/updateTeam", verifyToken, tournament, async (req, res) => {
   const { players } = req.body;
 
   if (!players || !Array.isArray(players) || players.length != 11) {
@@ -124,8 +134,18 @@ router.put("/updateTeam", verifyToken, async (req, res) => {
   try {
     await connection.beginTransaction();
 
-    for (let player of players) {
-      const { id, playerId, roleType } = player;
+    const [existingIds] = await connection.execute(
+      `SELECT id FROM dream11_players WHERE user_id = ?`,
+      [userId]
+    );
+
+    if (existingIds.length !== 11) {
+      return res.status(400).json({ message: "You must have exactly 11 players" });
+    }
+
+    for (let i = 0; i < players.length; i++) {
+      const { playerId, roleType } = players[i];
+      const  {id} = existingIds[i];
 
       if (
         !id ||
@@ -169,18 +189,24 @@ router.get("/team", async (req, res) => {
 
   try {
     const [teamPlayers] = await pool.execute(
-      `select
-	dp.player_id AS player_id, p.player_logo,
-  p.name AS player_name,
-  dp.role_type AS player_role,
-  IFNULL(SUM(mpm.points),0) AS points 
-from dream11_players dp 
-LEFT JOIN match_player_mapping mpm 
-	ON dp.player_id = mpm.player_id
-LEFT JOIN players p 
-	ON p.id = dp.player_id
-where dp.user_id = ?
-GROUP BY dp.player_id, dp.role_type `,
+      `SELECT
+        dp.player_id AS player_id, 
+        p.player_logo,
+        p.name AS player_name,
+        dp.role_type AS player_role,
+        IFNULL(SUM(mpm.points), 0) * 
+          CASE
+            WHEN dp.role_type = 'captain' THEN 2
+            WHEN dp.role_type = 'vice-captain' THEN 1.5
+            ELSE 1
+          END AS points
+      FROM dream11_players dp 
+      LEFT JOIN match_player_mapping mpm 
+        ON dp.player_id = mpm.player_id
+      LEFT JOIN players p 
+        ON p.id = dp.player_id
+      WHERE dp.user_id = ?
+      GROUP BY dp.player_id, dp.role_type`,
       [userId]
     );
 

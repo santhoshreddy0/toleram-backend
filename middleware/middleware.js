@@ -36,6 +36,24 @@ function verifyRole(requiredRole) {
   };
 }
 
+async function tournament(req, res, next) {
+  try {
+    const [matches] = await pool.execute('SELECT can_bet FROM matches');
+
+    const invalidMatch = matches.some(match => match.can_bet === 0 || match.can_bet === "0");
+
+    if (invalidMatch) {
+      return res.status(400).json({ message: 'Action not allowed, tournament already started.' });
+    }
+    next();
+
+  } catch (error) {
+    console.error('Error fetching matches', error);
+    return res.status(500).json({ message: 'Internal server error' });
+  }
+}
+
+
 
 async function getUserById(userId) {
   const query = 'SELECT * FROM users WHERE id = ?';
@@ -51,5 +69,6 @@ async function getUserById(userId) {
 module.exports = {
   verifyToken,
   verifyRole,
-  getUserById
+  getUserById,
+  tournament
 };

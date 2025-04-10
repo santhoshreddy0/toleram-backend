@@ -955,22 +955,23 @@ CREATE TABLE players (
 );
 
 CREATE TABLE match_player_mapping (
-  id INTEGER AUTO_INCREMENT PRIMARY KEY,
-  match_id INTEGER,
-  player_id INTEGER,
-  balls_played INTEGER DEFAULT 0,
-  player_score INTEGER DEFAULT 0,
-  points INTEGER DEFAULT 0,
-  fours INTEGER DEFAULT 0,
-  sixes INTEGER DEFAULT 0,
-  wickets INTEGER DEFAULT 0,
-  maiden_overs INTEGER DEFAULT 0,
-  stumps INTEGER DEFAULT 0,
-  catches INTEGER DEFAULT 0,
-  run_outs INTEGER DEFAULT 0,  
-  FOREIGN KEY (match_id) REFERENCES matches(id) ON DELETE CASCADE,
-  FOREIGN KEY (player_id) REFERENCES matches(id) ON DELETE CASCADE
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    match_id INT,
+    player_id INT,
+    balls_played INT DEFAULT 0,
+    player_score INT DEFAULT 0,
+    points INT DEFAULT 0,
+    fours INT DEFAULT 0,
+    sixes INT DEFAULT 0,
+    wickets INT DEFAULT 0,
+    maiden_overs INT DEFAULT 0,
+    stumps INT DEFAULT 0,
+    catches INT DEFAULT 0,
+    run_outs INT DEFAULT 0,
+    FOREIGN KEY (player_id) REFERENCES players(id) ON DELETE SET NULL,
+    FOREIGN KEY (match_id) REFERENCES matches(id) ON DELETE CASCADE  
 );
+
 
 CREATE TABLE dream11_players (
     id INTEGER AUTO_INCREMENT PRIMARY KEY,
@@ -1004,5 +1005,8 @@ ALTER TABLE comments ADD COLUMN created_at DATETIME, ADD COLUMN likes_count INT;
 
 -- update users table with coloumn user_logo
 ALTER TABLE users ADD COLUMN user_logo VARCHAR(225) DEFAULT NULL;
+
+ALTER TABLE match_bets ADD total_amount DECIMAL(10, 2) DEFAULT 0.00;
+ALTER TABLE round_bets ADD total_amount DECIMAL(10, 2) DEFAULT 0.00;
 
 
