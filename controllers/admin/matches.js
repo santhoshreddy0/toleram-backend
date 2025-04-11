@@ -85,6 +85,14 @@ router.post("/", async (req, res) => {
     if (teamOneId && teamTwoId && teamOneId == teamTwoId) {
       validationErrors.push("Please select different teams.");
     }
+
+    if (canBet !== undefined && !["0", "1"].includes(canBet)) {
+      return res.status(400).json({ message: "Invalid value for canBet. Expected '0' or '1'" });
+    }
+  
+    if (canShow !== undefined && !["0", "1"].includes(canShow)) {
+      return res.status(400).json({ message: "Invalid value for canShow. Expected '0' or '1'" });
+    }
   
     if (validationErrors.length > 0) {
       return res.status(400).json({ errors: validationErrors });
