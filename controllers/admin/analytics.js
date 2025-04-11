@@ -316,16 +316,16 @@ router.get("/bets", async (req, res) => {
 router.get("/match/bets", async (req, res) => {
   try {
     const query = `SELECT 
-    m.match_id AS matchId,
+    mt.id AS matchId,
     mt.match_title AS matchTitle,
-    SUM(m.total_amount) AS totalAmount,
-    COUNT(DISTINCT m.user_id) AS totalBets
+    COALESCE(SUM(m.total_amount), 0) AS totalAmount,
+    COALESCE(COUNT(DISTINCT m.user_id), 0) AS totalBets
 FROM 
-    match_bets m
-JOIN 
-    matches mt ON m.match_id = mt.id
+    matches mt
+LEFT JOIN 
+    match_bets m ON mt.id = m.match_id
 GROUP BY 
-    m.match_id, mt.match_title`;
+    mt.id, mt.match_title`;
 
     const [matchRows] = await pool.execute(query);
     if (matchRows.length === 0) {
@@ -341,16 +341,16 @@ GROUP BY
 router.get("/round/bets", async (req, res) => {
   try {
     const query = `SELECT 
-    r.round_id AS roundId,
+    rd.id AS roundId,
     rd.round_name AS roundName,
-    SUM(r.total_amount) AS totalAmount,
-    COUNT(DISTINCT r.user_id) AS totalBets
+    COALESCE(SUM(r.total_amount), 0) AS totalAmount,
+    COALESCE(COUNT(DISTINCT r.user_id), 0) AS totalBets
 FROM 
-    round_bets r
-JOIN 
-    rounds rd ON r.round_id = rd.id
+    rounds rd
+LEFT JOIN 
+    round_bets r ON rd.id = r.round_id
 GROUP BY 
-    r.round_id, rd.round_name`;
+    rd.id, rd.round_name`;
 
     const [matchRows] = await pool.execute(query);
     if (matchRows.length === 0) {
