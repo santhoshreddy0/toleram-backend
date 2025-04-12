@@ -453,6 +453,93 @@ router.post("/", async (req, res) => {
       res.status(500).json({ message: "Internal server error" });
     }
   });
-  
 
+  router.get('/:matchId/players', async (req, res) => {
+    const matchId = req.params.matchId;
+  
+    try {
+  
+      const [matchRows] = await pool.execute(
+        'SELECT team_one, team_two FROM matches WHERE id = ?',
+        [matchId]
+      );
+  
+      if (matchRows.length === 0) {
+        return res.status(404).json({ message: 'Match not found' });
+      }
+  
+      const { team_one, team_two } = matchRows[0];
+  
+      const [rows] = await pool.execute(`
+        SELECT 
+          t.id AS teamId, t.team_name AS teamName, t.team_logo AS teamLogo,
+          p.id AS playerId, p.name AS playerName, p.player_role AS playerRole, p.player_logo AS playerLogo,
+          COALESCE(s.balls_played, 0) AS ballsPlayed,
+          COALESCE(s.player_score, 0) AS playerScore,
+          COALESCE(s.points, 0) AS points,
+          COALESCE(s.fours, 0) AS fours,
+          COALESCE(s.sixes, 0) AS sixes,
+          COALESCE(s.wickets, 0) AS wickets,
+          COALESCE(s.maiden_overs, 0) AS maidenOvers,
+          COALESCE(s.stumps, 0) AS stumps,
+          COALESCE(s.catches, 0) AS catches,
+          COALESCE(s.run_outs, 0) AS runOuts
+        FROM players p
+        JOIN teams t ON p.team_id = t.id
+        LEFT JOIN match_player_mapping s ON s.player_id = p.id AND s.match_id = ?
+        WHERE p.team_id IN (?, ?)
+      `, [matchId, team_one, team_two]);
+  
+      const teamMap = {};
+  
+      for (const row of rows) {
+        const teamId = row.teamId;
+  
+        if (!teamMap[teamId]) {
+          teamMap[teamId] = {
+            id: teamId,
+            teamName: row.teamName,
+            teamLogo: row.teamLogo,
+            players: []
+          };
+        }
+  
+        teamMap[teamId].players.push({
+          id: row.playerId,
+          name: row.playerName,
+          playerRole: row.playerRole,
+          playerLogo: row.playerLogo,
+          stats: {
+            ballsPlayed: row.ballsPlayed,
+            playerScore: row.playerScore,
+            points: row.points,
+            fours: row.fours,
+            sixes: row.sixes,
+            wickets: row.wickets,
+            maidenOvers: row.maidenOvers,
+            stumps: row.stumps,
+            catches: row.catches,
+            runOuts: row.runOuts
+          }
+        });
+      }
+  
+      const teams = Object.values(teamMap);
+  
+      if (teams.length === 1) {
+        res.json({
+          team1: teamMap[team_one] || {},
+          team2: teamMap[team_two] || {}
+        });
+      } else {
+        res.status(404).json({ message: 'Match data incomplete or teams not found' });
+      }
+  
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ message: 'Internal Server error' });
+    }
+  });
+  
+  
   module.exports = router;
