@@ -489,6 +489,7 @@ router.post("/", async (req, res) => {
         LEFT JOIN match_player_mapping s ON s.player_id = p.id AND s.match_id = ?
         WHERE p.team_id IN (?, ?)
       `, [matchId, team_one, team_two]);
+      // console.log("teams", rows);
   
       const teamMap = {};
   
@@ -525,8 +526,9 @@ router.post("/", async (req, res) => {
       }
   
       const teams = Object.values(teamMap);
+      console.log(teams)
   
-      if (teams.length === 1) {
+      if (teams.length >= 1) {
         res.json({
           team1: teamMap[team_one] || {},
           team2: teamMap[team_two] || {}
