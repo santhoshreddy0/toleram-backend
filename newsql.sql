@@ -968,8 +968,8 @@ CREATE TABLE match_player_mapping (
     stumps INT DEFAULT 0,
     catches INT DEFAULT 0,
     run_outs INT DEFAULT 0,
-    FOREIGN KEY (player_id) REFERENCES players(id) ON DELETE SET NULL,
-    FOREIGN KEY (match_id) REFERENCES matches(id) ON DELETE CASCADE  
+    FOREIGN KEY (player_id) REFERENCES players(id),
+    FOREIGN KEY (match_id) REFERENCES matches(id)  
 );
 
 
