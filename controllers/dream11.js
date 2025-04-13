@@ -1,7 +1,11 @@
 const express = require("express");
 const router = express.Router();
 const pool = require("../db");
-const { verifyToken, tournament } = require("../middleware/middleware");
+const {
+  verifyToken,
+  tournament,
+  isTournamentStarted,
+} = require("../middleware/middleware");
 
 class TransactionError extends Error {
   constructor(message) {
@@ -73,7 +77,7 @@ router.post("/createTeam", verifyToken, tournament, async (req, res) => {
       return res
         .status(400)
         .json({ message: "You have already created a team" });
-    };
+    }
 
     const [existingPlayers] = await connection.query(
       "SELECT id FROM players WHERE id IN (?)",
@@ -140,12 +144,14 @@ router.put("/updateTeam", verifyToken, tournament, async (req, res) => {
     );
 
     if (existingIds.length !== 11) {
-      return res.status(400).json({ message: "You must have exactly 11 players" });
+      return res
+        .status(400)
+        .json({ message: "You must have exactly 11 players" });
     }
 
     for (let i = 0; i < players.length; i++) {
       const { playerId, roleType } = players[i];
-      const  {id} = existingIds[i];
+      const { id } = existingIds[i];
 
       if (
         !id ||
@@ -210,18 +216,22 @@ router.get("/team", async (req, res) => {
       [userId]
     );
 
-    if (teamPlayers.length === 0) {
-      return res.status(404).json({ message: "No team found for the user" });
-    }
+    const isStarted = await isTournamentStarted(pool);
 
-    const totalPoints = teamPlayers.reduce(
-      (sum, player) => sum + player.points,
-      0
-    );
+    const hasTeam = teamPlayers.length > 0;
 
-    res.json({
-      team: teamPlayers,
+    const totalPoints = hasTeam
+      ? teamPlayers.reduce((sum, player) => sum + player.points, 0)
+      : 0;
+
+    const canCreate = !hasTeam && !isStarted;
+    const canEdit = hasTeam && !isStarted;
+
+    return res.status(200).json({
+      team: hasTeam ? teamPlayers : [],
       totalPoints,
+      canCreate,
+      canEdit
     });
   } catch (error) {
     console.error("Error executing query", error);
