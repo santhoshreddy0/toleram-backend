@@ -140,33 +140,40 @@ router.get("/users/bets", async (req, res) => {
       bets.map((bet) => {
         const questions = qMap[bet[idKey]] || [];
         const answers = parseJSON(bet.answers);
-        const formattedQs = questions.map((q) => {
-          const options = Array.isArray(q.options) ? q.options : parseJSON(q.options);
-          const userAns = answers[q.id] || {};
-          return {
-            questionId: q.id,
-            question: q.question,
-            options,
-            choseOption: userAns.option || null,
-            correct: q.correct_option && userAns.option == q.correct_option ? "Yes" : "No",
-            betAmount: userAns.amount || 0,
-            correctOption: q.correct_option,
-          };
-        });
-
+    
+        const formattedQs = questions
+          .filter((q) => {
+            const userAns = answers[q.id];
+            return userAns && userAns.option != null;
+          })
+          .map((q) => {
+            const options = Array.isArray(q.options) ? q.options : parseJSON(q.options);
+            const userAns = answers[q.id];
+            return {
+              questionId: q.id,
+              question: q.question,
+              options,
+              choseOption: userAns.option,
+              correct: q.correct_option && userAns.option == q.correct_option ? "Yes" : "No",
+              betAmount: userAns.amount || 0,
+              correctOption: q.correct_option,
+            };
+          });
+    
         const betData = {
           [idKey]: bet[idKey],
           betAmount: bet.bet_amount,
           points: bet.points || 0,
           bets: formattedQs,
         };
-
+    
         if (titleKey && responseTitleKey) {
           betData[responseTitleKey] = bet[titleKey];
         }
-
+    
         return betData;
       });
+    
 
     const [teamPlayers] = await pool.execute(
       `SELECT
