@@ -65,204 +65,149 @@ router.get("/rounds/:roundId/bets", async (req, res) => {
 
 router.get("/users/bets", async (req, res) => {
   const { email } = req.query;
+
   try {
-    const userSearchquery = `
-          SELECT *
-          FROM users
-          WHERE email = ?
-        `;
+    const [[user]] = await pool.execute(`SELECT * FROM users WHERE email = ?`, [email]);
+    if (!user) return res.status(404).json({ message: "No user found with the email" });
 
-    const [userRows] = await pool.execute(userSearchquery, [email]);
-    if (userRows.length === 0) {
-      return res.status(404).json({ message: "No user found with the email" });
-    }
+    const userId = user.id;
 
-    const userId = userRows[0].id;
-    const query = `
-      SELECT 
-          match_bets.match_id,
-          match_bets.total_amount AS bet_amount,
-          match_bets.answers,
-          match_bets.points
-      FROM match_bets 
-      WHERE match_bets.user_id = ?
-    `;
-    const [matchBetsRows] = await pool.execute(query, [userId]);
+    const [matchBets] = await pool.execute(
+      `SELECT 
+        mb.match_id,
+        mb.total_amount AS bet_amount,
+        mb.answers,
+        mb.points,
+        m.match_title
+      FROM match_bets mb
+      JOIN matches m ON mb.match_id = m.id
+      WHERE mb.user_id = ?`,
+      [userId]
+    );
 
-    const roundQuery = `
-      SELECT 
-          round_bets.round_id,
-          round_bets.total_amount AS bet_amount,
-          round_bets.answers,
-          round_bets.points
-      FROM round_bets
-      WHERE round_bets.user_id = ?
-    `;
-    const [roundBetsRows] = await pool.execute(roundQuery, [userId]);
+    const [roundBets] = await pool.execute(
+      `SELECT 
+        rb.round_id,
+        rb.total_amount AS bet_amount,
+        rb.answers,
+        rb.points,
+        r.round_name AS round_title
+      FROM round_bets rb
+      JOIN rounds r ON rb.round_id = r.id
+      WHERE rb.user_id = ?`,
+      [userId]
+    );
 
-    if (matchBetsRows.length === 0 && roundBetsRows.length === 0) {
-      return res.status(404).json({ message: "No bets found for this user" });
-    }
+    const matchIds = matchBets.map(b => b.match_id);
+    const roundIds = roundBets.map(b => b.round_id);
 
-    let matchQuestionsRows = [];
-    if (matchBetsRows.length > 0) {
-      const matchIds = matchBetsRows.map((row) => row.match_id);
-      const placeholders = matchIds.map(() => "?").join(", ");
+    const matchQsQuery = matchIds.length
+      ? `SELECT id, match_id, question, options, correct_option
+         FROM match_questions
+         WHERE match_id IN (${matchIds.map(() => '?').join(',')})`
+      : null;
 
-      const matchQuestionsQuery = `
-  SELECT 
-      id,
-      match_id,
-      question,
-      options,
-      correct_option
-  FROM match_questions
-  WHERE match_id IN (${placeholders})
-`;
-      [matchQuestionsRows] = await pool.execute(matchQuestionsQuery, matchIds);
-    }
+    const roundQsQuery = roundIds.length
+      ? `SELECT id, round_id, question, options, correct_option
+         FROM round_questions
+         WHERE round_id IN (${roundIds.map(() => '?').join(',')})`
+      : null;
 
-    let roundQuestionsRows = [];
-    if (roundBetsRows.length > 0) {
-      const roundIds = roundBetsRows.map((row) => row.round_id);
-      const placeholders = roundIds.map(() => "?").join(", ");
-      const roundQuestionsQuery = `
-        SELECT 
-            id,
-            round_id,
-            question,
+    const [matchQuestions = []] = matchQsQuery ? await pool.execute(matchQsQuery, matchIds) : [[]];
+    const [roundQuestions = []] = roundQsQuery ? await pool.execute(roundQsQuery, roundIds) : [[]];
+
+    const matchQMap = matchQuestions.reduce((acc, q) => {
+      if (!acc[q.match_id]) acc[q.match_id] = [];
+      acc[q.match_id].push(q);
+      return acc;
+    }, {});
+
+    const roundQMap = roundQuestions.reduce((acc, q) => {
+      if (!acc[q.round_id]) acc[q.round_id] = [];
+      acc[q.round_id].push(q);
+      return acc;
+    }, {});
+
+    const parseJSON = (val) => {
+      try {
+        return typeof val === "string" ? JSON.parse(val) : val || {};
+      } catch {
+        return {};
+      }
+    };
+
+    const formatBets = (bets, qMap, idKey, titleKey = null, responseTitleKey = null) =>
+      bets.map((bet) => {
+        const questions = qMap[bet[idKey]] || [];
+        const answers = parseJSON(bet.answers);
+        const formattedQs = questions.map((q) => {
+          const options = Array.isArray(q.options) ? q.options : parseJSON(q.options);
+          const userAns = answers[q.id] || {};
+          return {
+            questionId: q.id,
+            question: q.question,
             options,
-            correct_option
-        FROM round_questions
-        WHERE round_id IN (${placeholders})
-      `;
-      [roundQuestionsRows] = await pool.execute(roundQuestionsQuery, roundIds);
-    }
+            choseOption: userAns.option || null,
+            correct: q.correct_option && userAns.option == q.correct_option ? "Yes" : "No",
+            betAmount: userAns.amount || 0,
+            correctOption: q.correct_option,
+          };
+        });
+
+        const betData = {
+          [idKey]: bet[idKey],
+          betAmount: bet.bet_amount,
+          points: bet.points || 0,
+          bets: formattedQs,
+        };
+
+        if (titleKey && responseTitleKey) {
+          betData[responseTitleKey] = bet[titleKey];
+        }
+
+        return betData;
+      });
 
     const [teamPlayers] = await pool.execute(
       `SELECT
-        dp.player_id AS player_id, 
+        dp.player_id,
         p.player_logo,
         p.name AS player_name,
         dp.role_type AS player_role,
-        IFNULL(SUM(mpm.points), 0) * 
+        IFNULL(SUM(mpm.points), 0) *
           CASE
             WHEN dp.role_type = 'captain' THEN 2
             WHEN dp.role_type = 'vice-captain' THEN 1.5
             ELSE 1
           END AS points
-      FROM dream11_players dp 
-      LEFT JOIN match_player_mapping mpm 
-        ON dp.player_id = mpm.player_id
-      LEFT JOIN players p 
-        ON p.id = dp.player_id
+      FROM dream11_players dp
+      LEFT JOIN match_player_mapping mpm ON dp.player_id = mpm.player_id
+      LEFT JOIN players p ON p.id = dp.player_id
       WHERE dp.user_id = ?
       GROUP BY dp.player_id, dp.role_type`,
       [userId]
     );
 
-    const totalPoints =
-      teamPlayers && teamPlayers.length > 0
-        ? teamPlayers.reduce((sum, player) => sum + player.points, 0)
-        : 0;
-    const { password, ...userWithoutPassword } = userRows[0];
+    const totalPoints = teamPlayers.reduce((sum, p) => sum + p.points, 0);
 
-    const result = {
+    const { password, ...userWithoutPassword } = user;
+
+    res.status(200).json({
       user: userWithoutPassword,
-      matchBets:
-        matchBetsRows.length > 0
-          ? matchBetsRows.map((matchBet) => {
-              const matchQuestions = matchQuestionsRows
-                .filter((question) => {
-                  const userAnswer = matchBet.answers
-                    ? jsonParse(matchBet.answers)[question.id]
-                    : {};
-                  return userAnswer && userAnswer.option;
-                })
-                .map((question) => {
-                  const userAnswer = matchBet.answers
-                    ? jsonParse(matchBet.answers)[question.id]
-                    : {};
-                  const options = Array.isArray(question.options)
-                    ? question.options
-                    : JSON.parse(question.options);
-                  return {
-                    questionId: question.id,
-                    question: question.question,
-                    options: options,
-                    choseOption: userAnswer?.option || null,
-                    correct:
-                      question.correct_option &&
-                      userAnswer?.option == question.correct_option
-                        ? "Yes"
-                        : "No",
-                    betAmount: userAnswer?.amount || 0,
-                    correctOption: question.correct_option,
-                  };
-                });
-
-              return {
-                matchId: matchBet.match_id,
-                betAmount: matchBet.bet_amount,
-                bets: matchQuestions,
-                points: matchBet.points || 0,
-              };
-            })
-          : [],
-
-      roundBets:
-        roundBetsRows.length > 0
-          ? roundBetsRows.map((roundBet) => {
-              const roundQuestions = roundQuestionsRows
-                .filter((question) => {
-                  const userAnswer = roundBet.answers
-                    ? jsonParse(roundBet.answers)[question.id]
-                    : {};
-                  return userAnswer && userAnswer.option;
-                })
-                .map((question) => {
-                  const userAnswer = roundBet.answers
-                    ? jsonParse(roundBet.answers)[question.id]
-                    : {};
-                  const options = Array.isArray(question.options)
-                    ? question.options
-                    : JSON.parse(question.options);
-                  return {
-                    questionId: question.id,
-                    question: question.question,
-                    options: options,
-                    choseOption: userAnswer?.option || null,
-                    correct:
-                      question.correct_option &&
-                      userAnswer?.option == question.correct_option
-                        ? "Yes"
-                        : "No",
-                    betAmount: userAnswer?.amount || 0,
-                    correctOption: question.correct_option,
-                  };
-                });
-
-              return {
-                roundId: roundBet.round_id,
-                betAmount: roundBet.bet_amount,
-                bets: roundQuestions,
-                points: roundBet.points || 0,
-              };
-            })
-          : [],
-
+      matchBets: formatBets(matchBets, matchQMap, "match_id", "match_title", "matchTitle"),
+      roundBets: formatBets(roundBets, roundQMap, "round_id", "round_title", "roundTitle"),
       dream11: {
         team: teamPlayers,
         totalPoints,
       },
-    };
-
-    res.status(200).json(result);
-  } catch (error) {
-    console.log(error);
+    });
+  } catch (err) {
+    console.error(err);
     res.status(500).json({ message: "Internal server error" });
   }
 });
+
+
 
 router.get("/bets", async (req, res) => {
   try {
