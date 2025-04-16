@@ -14,7 +14,7 @@ function validateString(string) {
 }
 router.patch("/:playerId", async (req, res) => {
   const { playerId } = req.params;
-  const { name, imageUrl, role } = req.body;
+  const { name, imageUrl, role, gender, credits } = req.body;
 
   if (name && !validateName(name)) {
     return res.status(400).json({ message: "Invalid player name" });
@@ -28,6 +28,21 @@ router.patch("/:playerId", async (req, res) => {
     !["all-rounder", "batsman", "bowler", "wicket-keeper"].includes(role)
   ) {
     return res.status(400).json({ message: "Invalid role for player" });
+  }
+
+  if (gender && !["male", "female"].includes(gender)) {
+    return res
+      .status(400)
+      .json({ message: "Please select the gender as male or female" });
+  }
+
+  if (
+    credits !== undefined &&
+    (typeof credits !== "number" || credits < 0 || !Number.isFinite(credits))
+  ) {
+    return res
+      .status(400)
+      .json({ error: "Invalid credits value. Must be a non-negative number." });
   }
 
   try {
@@ -60,6 +75,16 @@ router.patch("/:playerId", async (req, res) => {
       updateValues.push(role);
     }
 
+    if (credits !== undefined) {
+      updateFields.push("credits = ?");
+      updateValues.push(credits);
+    }
+
+    if (gender) {
+      updateFields.push("gender = ?");
+      updateValues.push(gender);
+    }
+
     if (updateFields.length === 0) {
       return res.status(400).json({ message: "No fields to update" });
     }
@@ -84,4 +109,4 @@ router.patch("/:playerId", async (req, res) => {
   }
 });
 
-module.exports= router;
+module.exports = router;

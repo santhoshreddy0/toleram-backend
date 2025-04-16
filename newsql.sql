@@ -951,7 +951,7 @@ CREATE TABLE players (
   player_role ENUM('all-rounder', 'batsman', 'bowler', 'wicket-keeper') NOT NULL,
   team_id INTEGER,
   player_logo VARCHAR(255) DEFAULT NULL,
-  FOREIGN KEY (team_id) REFERENCES teams(id) ON DELETE SET NULL
+  FOREIGN KEY (team_id) REFERENCES teams(id)
 );
 
 CREATE TABLE match_player_mapping (
@@ -978,8 +978,8 @@ CREATE TABLE dream11_players (
     player_id INTEGER,
     user_id INTEGER,
     responsibility ENUM('captain', 'vice-captain', 'player') NOT NULL DEFAULT 'player',
-    FOREIGN KEY (player_id) REFERENCES players(id) ON DELETE CASCADE,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    FOREIGN KEY (player_id) REFERENCES players(id),
+    FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
 ALTER TABLE `dream11_players` CHANGE `responsibility` `role_type` ENUM('captain','vice-captain','player') CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL;
@@ -997,8 +997,8 @@ CREATE TABLE comments (
   user_id INT NOT NULL,      
   user_name VARCHAR(255) NOT NULL,       
   room_id INT NOT NULL,            
-  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,  
-  FOREIGN KEY (room_id) REFERENCES rooms(id) ON DELETE CASCADE  
+  FOREIGN KEY (user_id) REFERENCES users(id),  
+  FOREIGN KEY (room_id) REFERENCES rooms(id)  
 );
 
 ALTER TABLE comments ADD COLUMN created_at DATETIME, ADD COLUMN likes_count INT;
@@ -1008,5 +1008,108 @@ ALTER TABLE users ADD COLUMN user_logo VARCHAR(225) DEFAULT NULL;
 
 ALTER TABLE match_bets ADD total_amount DECIMAL(10, 2) DEFAULT 0.00;
 ALTER TABLE round_bets ADD total_amount DECIMAL(10, 2) DEFAULT 0.00;
+ALTER TABLE players
+ADD COLUMN gender ENUM('male', 'female') DEFAULT 'male',
+ADD COLUMN credits DECIMAL(10, 2) DEFAULT 00.00;
+
+CREATE TABLE tournaments (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+
+    match_bet_min DECIMAL(10, 2),
+    match_bet_max DECIMAL(10, 2),
+
+    match_question_bet_min DECIMAL(10, 2),
+    match_question_bet_max DECIMAL(10, 2),
+
+    round_bet_min DECIMAL(10, 2),
+    round_bet_max DECIMAL(10, 2),
+
+    round_question_bet_min DECIMAL(10, 2),
+    round_question_bet_max DECIMAL(10, 2),
+
+    players_min INT,
+    players_max INT,
+
+    bowlers_min INT,
+    bowlers_max INT,
+
+    batsmen_min INT,
+    batsmen_max INT,
+
+    boatsman_min INT,
+    boatsman_max INT,
+
+    wicket_keepers_min INT,
+    wicket_keepers_max INT,
+
+    all_rounders_min INT,
+    all_rounders_max INT,
+
+    female_players_min INT,
+    female_players_max INT,
+
+    total_credits DECIMAL(10, 2)
+);
+
+ALTER TABLE tplmania 
+ADD COLUMN logo_url VARCHAR(255) AFTER name;
+
+INSERT INTO tournaments (
+    logo_url,
+    name,
+    match_bet_min,
+    match_bet_max,
+    match_question_bet_min,
+    match_question_bet_max,
+    round_bet_min,
+    round_bet_max,
+    round_question_bet_min,
+    round_question_bet_max,
+    players_min,
+    players_max,
+    bowlers_min,
+    bowlers_max,
+    batsmen_min,
+    batsmen_max,
+    wicket_keepers_min,
+    wicket_keepers_max,
+    all_rounders_min,
+    all_rounders_max,
+    female_players_min,
+    female_players_max,
+    total_credits
+) VALUES (
+    'https://tplmania.s3.eu-west-2.amazonaws.com/toleram/b1a0ef75-1763-400d-9e5f-8896c5f050a4-new_tpl_logo.png', -- dummy logo URL
+    'TOLARAM Premier League',  -- Name (dummy value)
+    10.00,  -- match_bet_min
+    1000.00,  -- match_bet_max
+    5.00,  -- match_question_bet_min
+    500.00,  -- match_question_bet_max
+    2.00,  -- round_bet_min
+    200.00,  -- round_bet_max
+    1.00,  -- round_question_bet_min
+    100.00,  -- round_question_bet_max
+    10,  -- players_min
+    50,  -- players_max
+    5,  -- bowlers_min
+    25,  -- bowlers_max
+    3,  -- batsmen_min
+    15,  -- batsmen_max
+    1,  -- boatsman_min
+    10,  -- boatsman_max
+    2,  -- wicket_keepers_min
+    8,  -- wicket_keepers_max
+    4,  -- all_rounders_min
+    12,  -- all_rounders_max
+    1,  -- female_players_min
+    10,  -- female_players_max
+    100.00  -- total_credits
+)
+
+
+
+
+
 
 

@@ -13,7 +13,6 @@ function validateString(string) {
   return true;
 }
 
-
 router.post("/", async (req, res) => {
   const { name, imageUrl } = req.body;
 
@@ -127,7 +126,7 @@ router.patch("/:teamId", async (req, res) => {
 //createplayer
 router.post("/:teamId", async (req, res) => {
   const { teamId } = req.params;
-  const { name, imageUrl, role } = req.body;
+  const { name, imageUrl, role, gender, credits } = req.body;
 
   if (!validateName(name)) {
     return res.status(400).json({ message: "Invalid player name" });
@@ -137,11 +136,23 @@ router.post("/:teamId", async (req, res) => {
     return res.status(400).json({ message: "Invalid url" });
   }
 
+  if (!gender || !["male", "female"].includes(gender)) {
+    return res
+      .status(400)
+      .json({ message: "Please select the gender as male or female" });
+  }
+
   if (
     !role ||
     !["all-rounder", "batsman", "bowler", "wicket-keeper"].includes(role)
   ) {
     return res.status(400).json({ message: "Invalid role for player" });
+  }
+
+  if (typeof credits !== "number" || credits < 0 || !Number.isFinite(credits)) {
+    return res
+      .status(400)
+      .json({ error: "Invalid credits value. Must be a non-negative number." });
   }
 
   try {
@@ -166,8 +177,8 @@ router.post("/:teamId", async (req, res) => {
     }
 
     const [insertResult] = await pool.execute(
-      "INSERT INTO players (name, player_logo, team_id, player_role) VALUES (?, ?, ?, ?)",
-      [name, imageUrl || null, teamId, role]
+      "INSERT INTO players (name, player_logo, team_id, player_role, gender, credits) VALUES (?, ?, ?, ?, ?, ?)",
+      [name, imageUrl || null, teamId, role, gender, credits]
     );
 
     res.json({
