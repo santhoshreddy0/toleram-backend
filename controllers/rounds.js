@@ -104,7 +104,7 @@ router.put("/:id/bet", verifyToken, async (req, res) => {
           bets[row.id].amount < roundQuestionBetMin)
       ) {
         return res.status(400).json({
-          message: `Minimum bet amount for the question is ${roundQuestionBetMin}`,
+          message: `Bet amount for the question must be greater than ${roundQuestionBetMin}`,
         });
       }
 
