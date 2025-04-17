@@ -26,7 +26,7 @@ const adminRouter = require("./controllers/admin");
 const commentsRouter = require("./controllers/comments");
 const roomsRouter = require("./controllers/rooms");
 const userRouter = require("./controllers/user");
-const tournamentRouter = require("./controllers/tournament");
+const {tournamentRouter} = require("./controllers/tournament");
 const { verifyToken, verifyRole } = require("./middleware/middleware");
 
 app.use("/login", loginRouter);

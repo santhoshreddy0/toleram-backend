@@ -226,4 +226,10 @@ CREATE TABLE tournaments (
 ALTER TABLE tplmania 
 ADD COLUMN logo_url VARCHAR(255) AFTER name;
 
+ALTER TABLE matches
+ADD COLUMN max_bet_amount DECIMAL(10, 2) DEFAULT 500000;
+
+ALTER TABLE rounds
+ADD COLUMN max_bet_amount DECIMAL(10, 2) DEFAULT 500000;
+
 

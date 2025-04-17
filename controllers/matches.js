@@ -5,7 +5,6 @@ const { verifyToken, verifyRole } = require("../middleware/middleware");
 const moment = require("moment");
 const { jsonParse } = require("../utils");
 
-
 router.get("/", async (req, res) => {
   try {
     // Retrieve all available matches from the matches table
@@ -154,6 +153,8 @@ router.put("/:id/bet", verifyToken, async (req, res) => {
         .status(400)
         .json({ message: "Betting is closed for this match" });
     }
+    const matchBetMax = match.max_bet_amount || 500000;
+    const matchQuestionBetMin = 0;
 
     const quesstionQuery = "Select id from match_questions where match_id = ?";
     const [questionRows] = await pool.execute(quesstionQuery, [match_id]);
@@ -168,11 +169,27 @@ router.put("/:id/bet", verifyToken, async (req, res) => {
     let totalAmount = 0;
     questionRows.forEach((row) => {
       let data = {};
+      if (
+        bets[row.id]?.option &&
+        (bets[row.id].amount == null ||
+          bets[row.id].amount < matchQuestionBetMin)
+      ) {
+        return res.status(400).json({
+          message: `Minimum bet amount for the question is ${matchQuestionBetMin}`,
+        });
+      }
+
       data["option"] = bets[row.id]?.option || null;
       data["amount"] = bets[row.id]?.amount || 0;
       totalAmount += data.amount;
       questionMap[row.id] = data;
     });
+
+    if (totalAmount > matchBetMax) {
+      return res.status(400).json({
+        message: `Total bet amount (${totalAmount}) exceeds round limit of ${matchBetMax}`,
+      });
+    }
 
     const rowCheckingQuery =
       "SELECT * FROM match_bets WHERE user_id = ? AND match_id = ?";
@@ -186,7 +203,7 @@ router.put("/:id/bet", verifyToken, async (req, res) => {
         user_id,
         match_id,
         JSON.stringify(questionMap),
-        totalAmount
+        totalAmount,
       ]);
       return res.status(200).json({ message: "Bet placed successfully" });
     } else {

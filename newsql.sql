@@ -1107,6 +1107,12 @@ INSERT INTO tournaments (
     100.00  -- total_credits
 )
 
+ALTER TABLE matches
+ADD COLUMN max_bet_amount DECIMAL(10, 2) DEFAULT 500000;
+
+ALTER TABLE rounds
+ADD COLUMN max_bet_amount DECIMAL(10, 2) DEFAULT 500000;
+
 
 
 
