@@ -136,10 +136,10 @@ router.post("/:teamId", async (req, res) => {
     return res.status(400).json({ message: "Invalid url" });
   }
 
-  if (!gender || !["male", "female"].includes(gender)) {
+  if (!gender || !["male", "female", "others"].includes(gender)) {
     return res
       .status(400)
-      .json({ message: "Please select the gender as male or female" });
+      .json({ message: "Please select the gender as male, female or others" });
   }
 
   if (
