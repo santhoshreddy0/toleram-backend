@@ -11,8 +11,4 @@ function jsonParse(input) {
   return input;
 }
 
-module.exports = {
-  jsonParse,
-};
-
 

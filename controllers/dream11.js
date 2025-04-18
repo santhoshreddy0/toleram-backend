@@ -6,6 +6,13 @@ const {
   tournament,
   isTournamentStarted,
 } = require("../middleware/middleware");
+const {
+  DEFAULT_NO_OF_PLAYERS,
+  DEFAULT_TOTAL_CREDITS,
+  DEFAULT_ROLE_MIN_LIMITS,
+  DEFAULT_FEMALE_MIN,
+} = require("../constants");
+const { getTournament } = require("./tournament");
 
 class TransactionError extends Error {
   constructor(message) {
@@ -14,57 +21,128 @@ class TransactionError extends Error {
   }
 }
 
-function validatePlayerRole(players) {
+function validateTeam(players, userId, tournament) {
+  const roleMinLimits = {
+    batsman: tournament?.batsmenMin ?? DEFAULT_ROLE_MIN_LIMITS.batsman,
+    bowler: tournament?.bowlersMin ?? DEFAULT_ROLE_MIN_LIMITS.bowler,
+    "all-rounder": tournament?.allRoundersMin ?? DEFAULT_ROLE_MIN_LIMITS["all-rounder"],
+    "wicket-keeper": tournament?.wicketKeepersMin ?? DEFAULT_ROLE_MIN_LIMITS["wicket-keeper"],
+  };
+
+  const maxPlayers = tournament?.noOfPlayers ?? DEFAULT_NO_OF_PLAYERS;
+  const requiredFemaleCount = tournament?.femalePlayersMin ?? DEFAULT_FEMALE_MIN;
+  const totalCreditsLimit = tournament?.totalCredits ?? DEFAULT_TOTAL_CREDITS;
+
+  const typeCount = {
+    batsman: 0,
+    bowler: 0,
+    "all-rounder": 0,
+    "wicket-keeper": 0,
+  };
+
+  let femaleCount = 0;
   let captainCount = 0;
   let viceCaptainCount = 0;
+  let usedCredits = 0;
 
-  players.forEach((player) => {
-    if (player.roleType === "captain") captainCount++;
-    if (player.roleType === "vice-captain") viceCaptainCount++;
-  });
-
-  return captainCount === 1 && viceCaptainCount === 1;
-}
-
-router.post("/createTeam", verifyToken, tournament, async (req, res) => {
-  const { players } = req.body;
-
-  if (
-    !players ||
-    !Array.isArray(players) ||
-    players.length === 0 ||
-    players.length != 11
-  ) {
-    return res
-      .status(400)
-      .json({ message: "You must select exactly 11 players" });
-  }
-
-  if (!validatePlayerRole(players)) {
-    return res.status(400).json({
-      message: "You must select only one captain and one vice-captain",
-    });
-  }
-
-  const userId = req.user.id;
-
-  const playerInserts = [];
   const playerIds = [];
+  const playerInserts = [];
 
-  for (let player of players) {
-    const { playerId, roleType } = player;
+  for (const player of players) {
+    const { playerId, roleType, gender, type, credits } = player;
 
     if (!playerId || !roleType) {
-      return res.status(400).json({ message: "Missing playerId or roleType" });
+      return { valid: false, message: "Missing playerId or roleType" };
     }
 
     if (!["captain", "vice-captain", "player"].includes(roleType)) {
-      return res.status(400).json({ message: "Invalid player role" });
+      return { valid: false, message: `Invalid roleType: ${roleType}` };
     }
+
+    if (!type || !roleMinLimits.hasOwnProperty(type)) {
+      return { valid: false, message: `Invalid player type: ${type}` };
+    }
+
+    if (!gender || !["male", "female"].includes(gender)) {
+      return { valid: false, message: `Invalid gender: ${gender}` };
+    }
+
+    if (typeof credits !== "number" || credits < 0) {
+      return { valid: false, message: `Invalid credit value for player: ${playerId}` };
+    }
+
+    usedCredits += credits;
+
+    if (roleType === "captain") captainCount++;
+    else if (roleType === "vice-captain") viceCaptainCount++;
+
+    typeCount[type]++;
+    if (gender === "female") femaleCount++;
 
     playerIds.push(playerId);
     playerInserts.push([userId, playerId, roleType]);
   }
+
+  if (players.length !== maxPlayers) {
+    return {
+      valid: false,
+      message: `You must select exactly ${maxPlayers} players`,
+    };
+  }
+
+  if (captainCount !== 1 || viceCaptainCount !== 1) {
+    return {
+      valid: false,
+      message: "You must select exactly one captain and one vice-captain",
+    };
+  }
+
+  for (const type in typeCount) {
+    if (typeCount[type] < roleMinLimits[type]) {
+      return {
+        valid: false,
+        message: `You have to select at least ${roleMinLimits[type]} ${type}(s)`,
+      };
+    }
+  }
+
+  if (femaleCount < requiredFemaleCount) {
+    return {
+      valid: false,
+      message: `At least ${requiredFemaleCount} female player(s) required`,
+    };
+  }
+
+  if (usedCredits > totalCreditsLimit) {
+    return {
+      valid: false,
+      message: `Credits exceeded: used ${usedCredits} / allowed ${totalCreditsLimit}`,
+    };
+  }
+
+  return { valid: true, playerIds, playerInserts };
+}
+
+
+
+router.post("/createTeam", verifyToken, tournament, async (req, res) => {
+  const { players } = req.body;
+
+  const userId = req.user.id;
+
+  if (!players || !Array.isArray(players)) {
+    return res.status(400).json({ message: "Invalid player data" });
+  }
+
+  const tournamentData = await getTournament();
+
+  const teamValidation = validateTeam(players, userId, tournamentData);
+
+  if (!teamValidation.valid) {
+    return res.status(400).json({ message: teamValidation.message });
+  }
+
+  const { playerIds, playerInserts } = teamValidation;
 
   const connection = await pool.getConnection();
 
@@ -85,10 +163,10 @@ router.post("/createTeam", verifyToken, tournament, async (req, res) => {
     );
 
     const existingPlayerIds = existingPlayers.map((player) => player.id);
-
     const missingPlayerIds = playerIds.filter(
       (id) => !existingPlayerIds.includes(id)
     );
+
     if (missingPlayerIds.length > 0) {
       return res.status(400).json({
         message: `Player IDs do not exist: ${missingPlayerIds.join(", ")}`,
@@ -97,16 +175,14 @@ router.post("/createTeam", verifyToken, tournament, async (req, res) => {
 
     await connection.beginTransaction();
 
-    const [insertResult] = await connection.query(
+    await connection.query(
       "INSERT INTO dream11_players (user_id, player_id, role_type) VALUES ?",
       [playerInserts]
     );
 
     await connection.commit();
 
-    res.json({
-      message: "Team created successfully",
-    });
+    res.json({ message: "Team created successfully" });
   } catch (error) {
     await connection.rollback();
     console.error("Error executing query", error);
@@ -119,53 +195,44 @@ router.post("/createTeam", verifyToken, tournament, async (req, res) => {
 router.put("/updateTeam", verifyToken, tournament, async (req, res) => {
   const { players } = req.body;
 
-  if (!players || !Array.isArray(players) || players.length != 11) {
-    return res
-      .status(400)
-      .json({ message: "You must select exactly 11 players" });
-  }
-
-  if (!validatePlayerRole(players)) {
-    return res.status(400).json({
-      message: "You must select only one captain and one vice-captain",
-    });
-  }
-
   const userId = req.user.id;
+
+  if (!players || !Array.isArray(players)) {
+    return res.status(400).json({ message: "Invalid players data" });
+  }
+
+  const tournamentData = await getTournament();
+
+  const teamValidation = validateTeam(players, userId, tournamentData);
+
+  if (!teamValidation.valid) {
+    return res.status(400).json({ message: teamValidation.message });
+  }
+
+  const { playerIds, playerInserts } = teamValidation;
 
   const connection = await pool.getConnection();
 
   try {
     await connection.beginTransaction();
 
-    const [existingIds] = await connection.execute(
-      `SELECT id FROM dream11_players WHERE user_id = ?`,
+    const [existingPlayers] = await connection.query(
+      "SELECT id FROM dream11_players WHERE user_id = ?",
       [userId]
     );
 
-    if (existingIds.length !== 11) {
-      return res
-        .status(400)
-        .json({ message: "You must have exactly 11 players" });
+    if (existingPlayers.length !== playerInserts.length) {
+      return res.status(400).json({ message: `You must have exactly ${playerInserts.length} players in your existing team.` });
     }
 
-    for (let i = 0; i < players.length; i++) {
-      const { playerId, roleType } = players[i];
-      const { id } = existingIds[i];
-
-      if (
-        !id ||
-        !playerId ||
-        !roleType ||
-        !["captain", "vice-captain", "player"].includes(roleType)
-      ) {
-        throw new TransactionError("Invalid player data");
-      }
+    for (let i = 0; i < playerInserts.length; i++) {
+      const [uid, playerId, roleType] = playerInserts[i];
+      const { id } = existingPlayers[i];
 
       const [updateResult] = await connection.execute(
         `UPDATE dream11_players
-           SET player_id = ?, role_type = ?
-           WHERE user_id = ? AND id = ?`,
+         SET player_id = ?, role_type = ?
+         WHERE user_id = ? AND id = ?`,
         [playerId, roleType, userId, id]
       );
 
@@ -175,20 +242,21 @@ router.put("/updateTeam", verifyToken, tournament, async (req, res) => {
     }
 
     await connection.commit();
-    res.json({ message: "Players updated successfully" });
+    res.json({ message: "Team updated successfully" });
   } catch (error) {
+    await connection.rollback();
+
     if (error instanceof TransactionError) {
-      await connection.rollback();
       return res.status(400).json({ message: error.message });
-    } else {
-      await connection.rollback();
-      console.error("Error executing query", error);
-      return res.status(500).json({ message: "Internal server error" });
     }
+
+    console.error("Update error:", error);
+    res.status(500).json({ message: "Internal server error" });
   } finally {
     connection.release();
   }
 });
+
 
 router.get("/team", async (req, res) => {
   const userId = req.user.id;
