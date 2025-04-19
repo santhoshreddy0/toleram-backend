@@ -314,13 +314,18 @@ router.get("/team", async (req, res) => {
 });
 
 const LEADERBOARD_KEY = "leaderboard";
-const LEADERBOARD_LIMIT = 10
+const LASTUPDATED_KEY = "last_updated";
+const LEADERBOARD_LIMIT = 10;
 router.get("/leaderboard", async (req, res) => {
   const redis = new RedisClient();
   const userId = req.user.id;
 
   try {
-    const top = await redis.zRangeWithScores(LEADERBOARD_KEY, 0, LEADERBOARD_LIMIT-1);
+    const top = await redis.zRangeWithScores(
+      LEADERBOARD_KEY,
+      0,
+      LEADERBOARD_LIMIT - 1
+    );
     const topUserIds = top.map((item) => parseInt(item.value, 10));
 
     const placeholders = topUserIds.map(() => "?").join(", ");
@@ -363,8 +368,9 @@ router.get("/leaderboard", async (req, res) => {
         });
       }
     }
+    const lastUpdated = await redis.get(LASTUPDATED_KEY);
 
-    res.json({ leaderboard, isInTop });
+    res.json({ leaderboard, isInTop, lastUpdated });
   } catch (err) {
     console.error("Error fetching leaderboard:", err);
     res.status(500).send("Error fetching leaderboard");
