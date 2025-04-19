@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken');
 const secretKey = 'secret';
 const pool = require('../db');
+const { invalid } = require('moment');
 
 function verifyToken(req, res, next) {
   // Get the token from the request headers or query parameters
@@ -36,6 +37,32 @@ function verifyRole(requiredRole) {
   };
 }
 
+async function isTournamentStarted(pool) {
+  try {
+    const [matches] = await pool.execute('SELECT can_bet FROM matches');
+    const isStarted = matches.some(match => match.can_bet === 0 || match.can_bet === "0");
+    return isStarted;
+  } catch (error) {
+    console.error('Error checking can_bet:', error);
+    return false;
+  }
+}
+
+async function tournament(req, res, next) {
+  try {
+    const isStarted = await isTournamentStarted(pool);
+    if (isStarted) {
+      return res.status(400).json({ message: 'Action not allowed, tournament already started.' });
+    }
+    next();
+  } catch (error) {
+    console.error('Error fetching matches', error);
+    return res.status(500).json({ message: 'Internal server error' });
+  }
+}
+
+
+
 
 async function getUserById(userId) {
   const query = 'SELECT * FROM users WHERE id = ?';
@@ -48,8 +75,12 @@ async function getUserById(userId) {
   }
 }
 
+
+
 module.exports = {
   verifyToken,
   verifyRole,
-  getUserById
+  getUserById,
+  tournament,
+  isTournamentStarted
 };

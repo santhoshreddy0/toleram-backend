@@ -20,6 +20,7 @@
     "moment": "^2.29.4",
     "moment-timezone": "^0.5.43",
     "mysql2": "^3.3.1",
+    "redis": "^4.7.0",
     "uuid": "^11.1.0"
   },
   "devDependencies": {
