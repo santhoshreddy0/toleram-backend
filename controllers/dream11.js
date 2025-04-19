@@ -341,7 +341,7 @@ router.get("/leaderboard", async (req, res) => {
         totalPoints: item.score,
         rank: index + 1,
         name: user?.name || null,
-        email: user?.email || null,
+        // email: user?.email || null,
       };
     });
 
@@ -364,7 +364,7 @@ router.get("/leaderboard", async (req, res) => {
           totalPoints: parseFloat(userScore),
           rank: userRank + 1,
           name: user?.name || null,
-          email: user?.email || null,
+          // email: user?.email || null,
         });
       }
     }
