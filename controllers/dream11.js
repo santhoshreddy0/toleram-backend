@@ -13,6 +13,7 @@ const {
   DEFAULT_FEMALE_MIN,
 } = require("../constants");
 const { getTournament } = require("./tournament");
+const RedisClient = require("../redis");
 
 class TransactionError extends Error {
   constructor(message) {
@@ -25,12 +26,15 @@ function validateTeam(players, userId, tournament) {
   const roleMinLimits = {
     batsman: tournament?.batsmenMin ?? DEFAULT_ROLE_MIN_LIMITS.batsman,
     bowler: tournament?.bowlersMin ?? DEFAULT_ROLE_MIN_LIMITS.bowler,
-    "all-rounder": tournament?.allRoundersMin ?? DEFAULT_ROLE_MIN_LIMITS["all-rounder"],
-    "wicket-keeper": tournament?.wicketKeepersMin ?? DEFAULT_ROLE_MIN_LIMITS["wicket-keeper"],
+    "all-rounder":
+      tournament?.allRoundersMin ?? DEFAULT_ROLE_MIN_LIMITS["all-rounder"],
+    "wicket-keeper":
+      tournament?.wicketKeepersMin ?? DEFAULT_ROLE_MIN_LIMITS["wicket-keeper"],
   };
 
   const maxPlayers = tournament?.noOfPlayers ?? DEFAULT_NO_OF_PLAYERS;
-  const requiredFemaleCount = tournament?.femalePlayersMin ?? DEFAULT_FEMALE_MIN;
+  const requiredFemaleCount =
+    tournament?.femalePlayersMin ?? DEFAULT_FEMALE_MIN;
   const totalCreditsLimit = tournament?.totalCredits ?? DEFAULT_TOTAL_CREDITS;
 
   const typeCount = {
@@ -68,7 +72,10 @@ function validateTeam(players, userId, tournament) {
     }
 
     if (typeof credits !== "number" || credits < 0) {
-      return { valid: false, message: `Invalid credit value for player: ${playerId}` };
+      return {
+        valid: false,
+        message: `Invalid credit value for player: ${playerId}`,
+      };
     }
 
     usedCredits += credits;
@@ -122,8 +129,6 @@ function validateTeam(players, userId, tournament) {
 
   return { valid: true, playerIds, playerInserts };
 }
-
-
 
 router.post("/createTeam", verifyToken, tournament, async (req, res) => {
   const { players } = req.body;
@@ -222,7 +227,9 @@ router.put("/updateTeam", verifyToken, tournament, async (req, res) => {
     );
 
     if (existingPlayers.length !== playerInserts.length) {
-      return res.status(400).json({ message: `You must have exactly ${playerInserts.length} players in your existing team.` });
+      return res.status(400).json({
+        message: `You must have exactly ${playerInserts.length} players in your existing team.`,
+      });
     }
 
     for (let i = 0; i < playerInserts.length; i++) {
@@ -256,7 +263,6 @@ router.put("/updateTeam", verifyToken, tournament, async (req, res) => {
     connection.release();
   }
 });
-
 
 router.get("/team", async (req, res) => {
   const userId = req.user.id;
@@ -299,11 +305,71 @@ router.get("/team", async (req, res) => {
       team: hasTeam ? teamPlayers : [],
       totalPoints,
       canCreate,
-      canEdit
+      canEdit,
     });
   } catch (error) {
     console.error("Error executing query", error);
     res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+const LEADERBOARD_KEY = "leaderboard";
+const LEADERBOARD_LIMIT = 10
+router.get("/leaderboard", async (req, res) => {
+  const redis = new RedisClient();
+  const userId = req.user.id;
+
+  try {
+    const top = await redis.zRangeWithScores(LEADERBOARD_KEY, 0, LEADERBOARD_LIMIT-1);
+    const topUserIds = top.map((item) => parseInt(item.value, 10));
+
+    const placeholders = topUserIds.map(() => "?").join(", ");
+    const query = `SELECT id, name, email FROM users WHERE id IN (${placeholders})`;
+    const [topUsers] = topUserIds.length
+      ? await pool.execute(query, topUserIds)
+      : [[]];
+
+    const leaderboard = top.map((item, index) => {
+      const user = topUsers.find((u) => u.id === parseInt(item.value, 10));
+      return {
+        userId: parseInt(item.value, 10),
+        totalPoints: item.score,
+        rank: index + 1,
+        name: user?.name || null,
+        email: user?.email || null,
+      };
+    });
+
+    const isInTop = topUserIds.includes(userId);
+
+    if (!isInTop) {
+      const userRank = await redis.zRevRank(LEADERBOARD_KEY, String(userId));
+      const userScore = await redis.zScore(LEADERBOARD_KEY, String(userId));
+
+      if (userRank !== null && userScore !== null) {
+        const [rows] = await pool.execute(
+          `SELECT id, name, email FROM users WHERE id = ?`,
+          [userId]
+        );
+
+        const user = rows[0];
+
+        leaderboard.push({
+          userId: userId,
+          totalPoints: parseFloat(userScore),
+          rank: userRank + 1,
+          name: user?.name || null,
+          email: user?.email || null,
+        });
+      }
+    }
+
+    res.json({ leaderboard, isInTop });
+  } catch (err) {
+    console.error("Error fetching leaderboard:", err);
+    res.status(500).send("Error fetching leaderboard");
+  } finally {
+    await redis.close();
   }
 });
 
