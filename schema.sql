@@ -186,44 +186,21 @@ ALTER TABLE players
 ADD COLUMN gender ENUM('male', 'female') DEFAULT 'male';
 ADD COLUMN credits DECIMAL(10, 2) DEFAULT 00.00;
 
-CREATE TABLE tournaments (
+CREATE TABLE
+  tournaments (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
-
-    match_bet_min DECIMAL(10, 2),
-    match_bet_max DECIMAL(10, 2),
-
-    match_question_bet_min DECIMAL(10, 2),
-    match_question_bet_max DECIMAL(10, 2),
-
-    round_bet_min DECIMAL(10, 2),
-    round_bet_max DECIMAL(10, 2),
-
-    round_question_bet_min DECIMAL(10, 2),
-    round_question_bet_max DECIMAL(10, 2),
-
-    players_min INT,
-    players_max INT,
-
+    no_of_players INT,
     bowlers_min INT,
-    bowlers_max INT,
-
     batsmen_min INT,
-    batsmen_max INT,
-
+    boatsman_min INT,
     wicket_keepers_min INT,
-    wicket_keepers_max INT,
-
     all_rounders_min INT,
-    all_rounders_max INT,
-
     female_players_min INT,
-    female_players_max INT,
-
     total_credits DECIMAL(10, 2)
-);
+  );
 
-ALTER TABLE tplmania 
+ALTER TABLE tplmania
 ADD COLUMN logo_url VARCHAR(255) AFTER name;
 
 ALTER TABLE matches

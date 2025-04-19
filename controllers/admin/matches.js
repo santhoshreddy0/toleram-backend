@@ -14,7 +14,8 @@ function validateString(string) {
 }
 
 router.post("/", async (req, res) => {
-  const { teamOneId, teamTwoId, matchTitle, matchTime } = req.body;
+  const { teamOneId, teamTwoId, matchTitle, matchTime, maxBetAmount } =
+    req.body;
   const validationErrors = [];
 
   if (!teamOneId) {
@@ -35,6 +36,15 @@ router.post("/", async (req, res) => {
 
   if (validationErrors.length > 0) {
     return res.status(400).json({ errors: validationErrors });
+  }
+
+  if (
+    maxBetAmount !== undefined &&
+    (typeof maxBetAmount !== "number" ||
+      maxBetAmount < 0 ||
+      !Number.isFinite(maxBetAmount))
+  ) {
+    validationErrors.push("Enter a valid max bet amount for the match");
   }
 
   // Validate match time format (assume it's in ISO string format)
@@ -60,8 +70,17 @@ router.post("/", async (req, res) => {
     }
 
     const [insertResult] = await pool.execute(
-      "INSERT INTO matches (team_one, team_two, match_title, match_time, can_bet, can_show, bet_status) VALUES (?, ?, ?, ?, ?, ?, ?)",
-      [teamOneId, teamTwoId, matchTitle, matchTimeUtc, "1", "1", "dont_process"]
+      "INSERT INTO matches (team_one, team_two, match_title, match_time, can_bet, can_show, bet_status, max_bet_amount) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+      [
+        teamOneId,
+        teamTwoId,
+        matchTitle,
+        matchTimeUtc,
+        "1",
+        "1",
+        "dont_process",
+        maxBetAmount || 500000,
+      ]
     );
 
     res.json({
@@ -76,14 +95,30 @@ router.post("/", async (req, res) => {
 
 router.patch("/:id", async (req, res) => {
   const matchId = req.params.id;
-  const { teamOneId, teamTwoId, matchTitle, matchTime, canBet, canShow } =
-    req.body;
+  const {
+    teamOneId,
+    teamTwoId,
+    matchTitle,
+    matchTime,
+    canBet,
+    canShow,
+    maxBetAmount,
+  } = req.body;
 
   const validationErrors = [];
 
   // Validate match data if provided
   if (teamOneId && teamTwoId && teamOneId == teamTwoId) {
     validationErrors.push("Please select different teams.");
+  }
+
+  if (
+    maxBetAmount !== undefined &&
+    (typeof maxBetAmount !== "number" ||
+      maxBetAmount < 0 ||
+      !Number.isFinite(maxBetAmount))
+  ) {
+    validationErrors.push("Enter a valid max bet amount for the match");
   }
 
   if (canBet !== undefined && !["0", "1"].includes(canBet)) {
@@ -182,6 +217,10 @@ router.patch("/:id", async (req, res) => {
     if (canShow !== undefined) {
       updates.push("can_show = ?");
       updateValues.push(canShow);
+    }
+    if (maxBetAmount !== undefined) {
+      updates.push("max_bet_amount = ?");
+      updateValues.push(maxBetAmount);
     }
 
     updateValues.push(matchId);

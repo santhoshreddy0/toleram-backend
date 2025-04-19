@@ -14,12 +14,22 @@ function validateString(string) {
 }
 
 router.post("/", async (req, res) => {
-  const { roundName } = req.body;
+  const { roundName, maxBetAmount } = req.body;
 
   if (!validateName(roundName)) {
     return res.status(400).json({ message: "Invalid round name" });
   }
-  
+  if (
+    maxBetAmount !== undefined &&
+    (typeof maxBetAmount !== "number" ||
+      maxBetAmount < 0 ||
+      !Number.isFinite(maxBetAmount))
+  ) {
+    return res
+      .status(400)
+      .json({ message: "Enter a valid max bet amount for the match" });
+  }
+
   try {
     const [roundRows] = await pool.execute(
       "SELECT * FROM rounds WHERE round_name = ?",
@@ -31,8 +41,8 @@ router.post("/", async (req, res) => {
         .json({ message: "Round with the name already exists" });
     }
     const [insertResult] = await pool.execute(
-      "INSERT INTO rounds (round_name, can_bet) VALUES (?, ?)",
-      [roundName, "1"]
+      "INSERT INTO rounds (round_name, can_bet, max_bet_amount) VALUES (?, ?, ?)",
+      [roundName, "1", maxBetAmount || 500000]
     );
 
     res.json({
@@ -47,18 +57,33 @@ router.post("/", async (req, res) => {
 
 router.patch("/:roundId", async (req, res) => {
   const { roundId } = req.params;
-  const { roundName, canBet, canShow } = req.body;
+  const { roundName, canBet, canShow, maxBetAmount } = req.body;
 
   if (roundName && !validateName(roundName)) {
     return res.status(400).json({ message: "Invalid round name" });
   }
 
   if (canBet !== undefined && !["0", "1"].includes(canBet)) {
-    return res.status(400).json({ message: "Invalid value for canBet. Expected '0' or '1'" });
+    return res
+      .status(400)
+      .json({ message: "Invalid value for canBet. Expected '0' or '1'" });
   }
 
   if (canShow !== undefined && !["0", "1"].includes(canShow)) {
-    return res.status(400).json({ message: "Invalid value for canShow. Expected '0' or '1'" });
+    return res
+      .status(400)
+      .json({ message: "Invalid value for canShow. Expected '0' or '1'" });
+  }
+
+  if (
+    maxBetAmount !== undefined &&
+    (typeof maxBetAmount !== "number" ||
+      maxBetAmount < 0 ||
+      !Number.isFinite(maxBetAmount))
+  ) {
+    return res
+      .status(400)
+      .json({ message: "Enter a valid max bet amount for the match" });
   }
 
   try {
@@ -85,6 +110,11 @@ router.patch("/:roundId", async (req, res) => {
     if (canShow !== undefined && ["0", "1"].includes(canShow)) {
       updateFields.push("can_show = ?");
       updateValues.push(canShow);
+    }
+
+    if (maxBetAmount !== undefined) {
+      updateFields.push("max_bet_amount = ?");
+      updateValues.push(maxBetAmount);
     }
 
     if (updateFields.length === 0) {
@@ -124,7 +154,7 @@ router.patch("/:roundId/process-bet", async (req, res) => {
   ) {
     return res.status(400).json({ message: "Invalid bet status" });
   }
-  try{
+  try {
     const [roundRows] = await pool.execute(
       "SELECT * FROM rounds WHERE id = ?",
       [roundId]
@@ -138,15 +168,12 @@ router.patch("/:roundId/process-bet", async (req, res) => {
     await pool.execute(query, [betStatus, roundId]);
 
     res.json({
-      message: "Round bet status updated successfully"
+      message: "Round bet status updated successfully",
     });
-
-
-  }catch(error){
+  } catch (error) {
     console.error("Error executing query", error);
     res.status(500).json({ message: "Internal server error" });
   }
-
 });
 
 router.post("/:roundId/addQuestion", async (req, res) => {
@@ -215,39 +242,38 @@ router.post("/:roundId/addQuestion", async (req, res) => {
 });
 
 router.get("/:id/questions", async (req, res) => {
-    try {
-      const { id: round_id } = req.params;
-  
-      const roundQuery = "SELECT * FROM rounds WHERE id = ?";
-      let [roundRows] = await pool.execute(roundQuery, [round_id]);
-      if (roundRows.length == 0) {
-        return res.status(404).json({ message: "Round not found" });
-      }
-      roundRows = roundRows[0];
-  
-      const query = "SELECT * FROM round_questions WHERE round_id = ?";
-      const [rows] = await pool.execute(query, [round_id]);
-  
-      if (rows.length == 0) {
-        return res.status(404).json({ message: "Questions not found" });
-      }
-  
-      const questions = rows.map((row) => {
-        return {
-          id: row.id,
-          question: row.question,
-          canShow: row.can_show,
-          options: jsonParse(row.options),
-          correct_option: row.correct_option,
-        };
-      });
-  
-      res.json({ questions: questions });
-    } catch (error) {
-      console.error("Error executing query", error);
-      res.status(500).json({ message: "Internal server error" });
-    }
-  });
+  try {
+    const { id: round_id } = req.params;
 
+    const roundQuery = "SELECT * FROM rounds WHERE id = ?";
+    let [roundRows] = await pool.execute(roundQuery, [round_id]);
+    if (roundRows.length == 0) {
+      return res.status(404).json({ message: "Round not found" });
+    }
+    roundRows = roundRows[0];
+
+    const query = "SELECT * FROM round_questions WHERE round_id = ?";
+    const [rows] = await pool.execute(query, [round_id]);
+
+    if (rows.length == 0) {
+      return res.status(404).json({ message: "Questions not found" });
+    }
+
+    const questions = rows.map((row) => {
+      return {
+        id: row.id,
+        question: row.question,
+        canShow: row.can_show,
+        options: jsonParse(row.options),
+        correct_option: row.correct_option,
+      };
+    });
+
+    res.json({ questions: questions });
+  } catch (error) {
+    console.error("Error executing query", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
 
 module.exports = router;
