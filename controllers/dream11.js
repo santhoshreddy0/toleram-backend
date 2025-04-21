@@ -314,69 +314,75 @@ router.get("/team", async (req, res) => {
 });
 
 const LEADERBOARD_KEY = "leaderboard";
-const LASTUPDATED_KEY = "last_updated";
+const LAST_UPDATED_KEY = "last_updated";
 const LEADERBOARD_LIMIT = 10;
+
 router.get("/leaderboard", async (req, res) => {
   const redis = new RedisClient();
   const userId = req.user.id;
 
   try {
-    const top = await redis.zRangeWithScores(
-      LEADERBOARD_KEY,
-      0,
-      LEADERBOARD_LIMIT - 1
-    );
-    const topUserIds = top.map((item) => parseInt(item.value, 10));
+    const topEntries = await redis.zRangeWithScores(LEADERBOARD_KEY, 0, LEADERBOARD_LIMIT - 1);
+    const topUserIds = topEntries.map(entry => parseInt(entry.value, 10));
+    const isUserInTop = topUserIds.includes(userId);
 
-    const placeholders = topUserIds.map(() => "?").join(", ");
+    let completeEntries = [...topEntries];
+    let completeUserIds = [...topUserIds];
+
+    if (!isUserInTop) {
+      const userRank = await redis.zRevRank(LEADERBOARD_KEY, String(userId));
+      
+      if (userRank !== null) {
+        const surroundingUsers = await redis.zRangeWithScores(
+          LEADERBOARD_KEY,
+          Math.max(userRank - 1, 0),
+          userRank + 1
+        );
+
+        for (let i = 0; i < surroundingUsers.length; i++) {
+          const entry = surroundingUsers[i];
+          const id = parseInt(entry.value, 10);
+          if (!completeUserIds.includes(id)) {
+            completeUserIds.push(id);
+            completeEntries.push({
+              value: entry.value,
+              score: entry.score,
+              rank: userRank + i - 1,
+            });
+          }
+        }
+      }
+    }
+
+    const placeholders = completeUserIds.map(() => "?").join(", ");
     const query = `SELECT id, name, email FROM users WHERE id IN (${placeholders})`;
-    const [topUsers] = topUserIds.length
-      ? await pool.execute(query, topUserIds)
+    const [userRecords] = completeUserIds.length
+      ? await pool.execute(query, completeUserIds)
       : [[]];
 
-    const leaderboard = top.map((item, index) => {
-      const user = topUsers.find((u) => u.id === parseInt(item.value, 10));
+    const leaderboard = completeEntries.map((entry, index) => {
+      const id = parseInt(entry.value, 10);
+      const user = userRecords.find(u => u.id === id);
+
       return {
-        userId: parseInt(item.value, 10),
-        totalPoints: item.score,
-        rank: index + 1,
+        userId: id,
+        totalPoints: entry.score,
+        rank: entry.rank || index + 1,
         name: user?.name || null,
-        // email: user?.email || null,
+        email: user?.email || null,
       };
     });
 
-    const isInTop = topUserIds.includes(userId);
+    const lastUpdated = await redis.get(LAST_UPDATED_KEY);
 
-    if (!isInTop) {
-      const userRank = await redis.zRevRank(LEADERBOARD_KEY, String(userId));
-      const userScore = await redis.zScore(LEADERBOARD_KEY, String(userId));
-
-      if (userRank !== null && userScore !== null) {
-        const [rows] = await pool.execute(
-          `SELECT id, name, email FROM users WHERE id = ?`,
-          [userId]
-        );
-
-        const user = rows[0];
-
-        leaderboard.push({
-          userId: userId,
-          totalPoints: parseFloat(userScore),
-          rank: userRank + 1,
-          name: user?.name || null,
-          // email: user?.email || null,
-        });
-      }
-    }
-    const lastUpdated = await redis.get(LASTUPDATED_KEY);
-
-    res.json({ leaderboard, isInTop, lastUpdated });
-  } catch (err) {
-    console.error("Error fetching leaderboard:", err);
-    res.status(500).send("Error fetching leaderboard");
+    return res.json({ leaderboard, isInTop: isUserInTop, lastUpdated });
+  } catch (error) {
+    console.error("Error fetching leaderboard:", error);
+    return res.status(500).send("Error fetching leaderboard");
   } finally {
     await redis.close();
   }
 });
+
 
 module.exports = router;
