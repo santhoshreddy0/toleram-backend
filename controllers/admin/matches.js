@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const pool = require("../../db");
 const { jsonParse } = require("../../utils");
+const { POINTS } = require("../../constants");
 
 function validateName(name) {
   if (!name || name.length < 3) return false;
@@ -441,13 +442,13 @@ router.patch("/:matchId/players/:playerId", async (req, res) => {
 
     const points =
       (score ?? player?.player_score ?? 0) +
-      (sixes ?? player?.sixes ?? 0) * 6 +
-      (fours ?? player?.fours ?? 0) * 4 +
-      (wickets ?? player?.wickets ?? 0) * 25 +
-      (stumps ?? player?.stumps ?? 0) * 12 +
-      (runOuts ?? player?.run_outs ?? 0) * 12 +
-      (catches ?? player?.catches ?? 0) * 8 +
-      (maidenOvers ?? player?.maiden_overs ?? 0) * 12;
+      (sixes ?? player?.sixes ?? 0) * POINTS.SIX +
+      (fours ?? player?.fours ?? 0) * POINTS.FOUR +
+      (wickets ?? player?.wickets ?? 0) * POINTS.WICKET +
+      (stumps ?? player?.stumps ?? 0) * POINTS.STUMP +
+      (runOuts ?? player?.run_outs ?? 0) * POINTS.RUN_OUT +
+      (catches ?? player?.catches ?? 0) * POINTS.CATCH +
+      (maidenOvers ?? player?.maiden_overs ?? 0) * POINTS.MAIDEN_OVER;
 
     updates.push("points = ?");
     values.push(points);

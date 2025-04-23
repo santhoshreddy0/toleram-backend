@@ -10,7 +10,8 @@ const {
   DEFAULT_NO_OF_PLAYERS,
   DEFAULT_TOTAL_CREDITS,
   DEFAULT_ROLE_MIN_LIMITS,
-  DEFAULT_FEMALE_MIN,
+  DEFAULT_ROLE_MAX_LIMITS,
+  DEFAULT_FEMALE_COUNT,
 } = require("../constants");
 const { getTournament } = require("./tournament");
 const RedisClient = require("../redis");
@@ -22,20 +23,15 @@ class TransactionError extends Error {
   }
 }
 
-function validateTeam(players, userId, tournament) {
-  const roleMinLimits = {
-    batsman: tournament?.batsmenMin ?? DEFAULT_ROLE_MIN_LIMITS.batsman,
-    bowler: tournament?.bowlersMin ?? DEFAULT_ROLE_MIN_LIMITS.bowler,
-    "all-rounder":
-      tournament?.allRoundersMin ?? DEFAULT_ROLE_MIN_LIMITS["all-rounder"],
-    "wicket-keeper":
-      tournament?.wicketKeepersMin ?? DEFAULT_ROLE_MIN_LIMITS["wicket-keeper"],
-  };
 
-  const maxPlayers = tournament?.noOfPlayers ?? DEFAULT_NO_OF_PLAYERS;
-  const requiredFemaleCount =
-    tournament?.femalePlayersMin ?? DEFAULT_FEMALE_MIN;
-  const totalCreditsLimit = tournament?.totalCredits ?? DEFAULT_TOTAL_CREDITS;
+function validateTeam(players, userId) {
+  // Directly use constants for min and max limits
+  const roleMinLimits = DEFAULT_ROLE_MIN_LIMITS;
+  const roleMaxLimits = DEFAULT_ROLE_MAX_LIMITS;
+
+  const maxPlayers = DEFAULT_NO_OF_PLAYERS;
+  const requiredFemaleCount = DEFAULT_FEMALE_COUNT;
+  const totalCreditsLimit = DEFAULT_TOTAL_CREDITS;
 
   const typeCount = {
     batsman: 0,
@@ -111,12 +107,18 @@ function validateTeam(players, userId, tournament) {
         message: `You have to select at least ${roleMinLimits[type]} ${type}(s)`,
       };
     }
+    if (typeCount[type] > roleMaxLimits[type]) {
+      return {
+        valid: false,
+        message: `You cannot select more than ${roleMaxLimits[type]} ${type}(s)`,
+      };
+    }
   }
 
-  if (femaleCount < requiredFemaleCount) {
+  if (femaleCount !== requiredFemaleCount) {
     return {
       valid: false,
-      message: `At least ${requiredFemaleCount} female player(s) required`,
+      message: `You must select exactly ${requiredFemaleCount} female player(s)`,
     };
   }
 
@@ -130,6 +132,9 @@ function validateTeam(players, userId, tournament) {
   return { valid: true, playerIds, playerInserts };
 }
 
+
+
+
 router.post("/createTeam", verifyToken, tournament, async (req, res) => {
   const { players } = req.body;
 
@@ -139,9 +144,7 @@ router.post("/createTeam", verifyToken, tournament, async (req, res) => {
     return res.status(400).json({ message: "Invalid player data" });
   }
 
-  const tournamentData = await getTournament();
-
-  const teamValidation = validateTeam(players, userId, tournamentData);
+  const teamValidation = validateTeam(players, userId);
 
   if (!teamValidation.valid) {
     return res.status(400).json({ message: teamValidation.message });
@@ -206,9 +209,8 @@ router.put("/updateTeam", verifyToken, tournament, async (req, res) => {
     return res.status(400).json({ message: "Invalid players data" });
   }
 
-  const tournamentData = await getTournament();
 
-  const teamValidation = validateTeam(players, userId, tournamentData);
+  const teamValidation = validateTeam(players, userId);
 
   if (!teamValidation.valid) {
     return res.status(400).json({ message: teamValidation.message });

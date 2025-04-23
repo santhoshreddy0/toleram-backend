@@ -1,12 +1,32 @@
+const POINTS = {
+  SIX: 2,
+  FOUR: 0,
+  WICKET: 15,
+  STUMP: 0,
+  RUN_OUT: 0,
+  CATCH: 0,
+  MAIDEN_OVER: 5,
+};
+
+const DEFAULT_ROLE_MIN_LIMITS = {
+  batsman: 3,
+  bowler: 3,
+  "all-rounder": 2,
+  "wicket-keeper": 0,
+};
+
+const DEFAULT_ROLE_MAX_LIMITS = {
+  batsman: 5,
+  bowler: 5,
+  "all-rounder": 4,
+  "wicket-keeper": 12,
+};
+
 module.exports = {
-    DEFAULT_NO_OF_PLAYERS: 11,
-    DEFAULT_TOTAL_CREDITS: 100,
-    DEFAULT_ROLE_MIN_LIMITS: {
-      batsman: 1,
-      bowler: 1,
-      "all-rounder": 1,
-      "wicket-keeper": 1,
-    },
-    DEFAULT_FEMALE_MIN: 1,
-  };
-  
+  DEFAULT_NO_OF_PLAYERS: 12,
+  DEFAULT_TOTAL_CREDITS: 100,
+  DEFAULT_FEMALE_COUNT: 2,
+  POINTS,
+  DEFAULT_ROLE_MIN_LIMITS,
+  DEFAULT_ROLE_MAX_LIMITS,
+};
