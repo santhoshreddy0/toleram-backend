@@ -14,7 +14,7 @@ function validateString(string) {
 }
 
 
-  router.get("/", verifyToken, async (req, res) => {
+  router.get("/", async (req, res) => {
     try {
       const [teams] = await pool.execute("SELECT * FROM teams");
   
@@ -31,7 +31,7 @@ function validateString(string) {
     }
   });
   
-  router.get("/:teamId", verifyToken, async (req, res) => {
+  router.get("/:teamId", async (req, res) => {
     const { teamId } = req.params;
   
     try {
