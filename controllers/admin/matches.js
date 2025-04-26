@@ -3,6 +3,7 @@ const router = express.Router();
 const pool = require("../../db");
 const { jsonParse } = require("../../utils");
 const { POINTS } = require("../../constants");
+const { updateLeaderboard } = require("../tournament");
 
 function validateName(name) {
   if (!name || name.length < 3) return false;
@@ -461,6 +462,7 @@ router.patch("/:matchId/players/:playerId", async (req, res) => {
       )} WHERE match_id = ? AND player_id = ?`;
 
       const [updateResult] = await pool.execute(updateQuery, values);
+      await updateLeaderboard();
 
       res.json({
         message: "Player data updated successfully",
@@ -485,6 +487,7 @@ router.patch("/:matchId/players/:playerId", async (req, res) => {
           points,
         ]
       );
+      await updateLeaderboard();
 
       res.status(201).json({
         message: "Player data added successfully",

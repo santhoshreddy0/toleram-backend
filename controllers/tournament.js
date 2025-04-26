@@ -1,13 +1,14 @@
 const express = require("express");
 const tournamentRouter = express.Router();
 const pool = require("../db");
+const moment = require("moment");
 const { verifyToken, tournament } = require("../middleware/middleware");
 
 async function getTournament() {
   const query = "SELECT * FROM tournaments";
   const [results] = await pool.execute(query);
 
-  const row = results[0]; 
+  const row = results[0];
   if (!row) return null;
 
   const formattedRow = {};
@@ -21,6 +22,11 @@ async function getTournament() {
   return formattedRow;
 }
 
+async function updateLeaderboard() {
+  await pool.execute(
+    `UPDATE tournaments SET update_leaderboard = 'yes' WHERE id = 1`
+  );
+}
 
 tournamentRouter.get("/", verifyToken, async (req, res) => {
   try {
@@ -35,4 +41,8 @@ tournamentRouter.get("/", verifyToken, async (req, res) => {
   }
 });
 
-module.exports = { tournamentRouter, getTournament };
+module.exports = {
+  tournamentRouter,
+  getTournament,
+  updateLeaderboard,
+};

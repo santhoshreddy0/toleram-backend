@@ -1450,3 +1450,7 @@ ADD COLUMN max_bet_amount DECIMAL(10, 2) DEFAULT 500000;
 
 ALTER TABLE rounds
 ADD COLUMN max_bet_amount DECIMAL(10, 2) DEFAULT 500000;
+
+ALTER TABLE tournaments
+ADD COLUMN update_leaderboard ENUM('yes', 'no') NOT NULL DEFAULT 'no';
+
