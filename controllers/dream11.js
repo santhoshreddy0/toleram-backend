@@ -12,6 +12,9 @@ const {
   DEFAULT_ROLE_MIN_LIMITS,
   DEFAULT_ROLE_MAX_LIMITS,
   DEFAULT_FEMALE_COUNT,
+  LEADERBOARD_KEY,
+  LEADERBOARD_LIMIT,
+  LAST_UPDATED_KEY,
 } = require("../constants");
 const { getTournament } = require("./tournament");
 const RedisClient = require("../redis");
@@ -315,9 +318,6 @@ router.get("/team", async (req, res) => {
   }
 });
 
-const LEADERBOARD_KEY = "leaderboard";
-const LAST_UPDATED_KEY = "last_updated";
-const LEADERBOARD_LIMIT = 10;
 
 router.get("/leaderboard", async (req, res) => {
   const redis = new RedisClient();

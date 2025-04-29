@@ -22,6 +22,11 @@ const DEFAULT_ROLE_MAX_LIMITS = {
   "wicket-keeper": 12,
 };
 
+
+const LEADERBOARD_KEY = "leaderboard";
+const LAST_UPDATED_KEY = "last_updated";
+const LEADERBOARD_LIMIT = 10;
+
 module.exports = {
   DEFAULT_NO_OF_PLAYERS: 12,
   DEFAULT_TOTAL_CREDITS: 100,
@@ -29,4 +34,7 @@ module.exports = {
   POINTS,
   DEFAULT_ROLE_MIN_LIMITS,
   DEFAULT_ROLE_MAX_LIMITS,
+  LEADERBOARD_KEY,
+  LAST_UPDATED_KEY,
+  LEADERBOARD_LIMIT,
 };
