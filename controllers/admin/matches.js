@@ -72,15 +72,12 @@ router.post("/", async (req, res) => {
     }
 
     const [insertResult] = await pool.execute(
-      "INSERT INTO matches (team_one, team_two, match_title, match_time, can_bet, can_show, bet_status, max_bet_amount) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+      "INSERT INTO matches (team_one, team_two, match_title, match_time, bet_status, max_bet_amount) VALUES (?, ?, ?, ?, ?, ?)",
       [
         teamOneId,
         teamTwoId,
         matchTitle,
         matchTimeUtc,
-        "1",
-        "1",
-        "dont_process",
         maxBetAmount || 500000,
       ]
     );

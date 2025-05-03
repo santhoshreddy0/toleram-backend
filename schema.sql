@@ -36,7 +36,7 @@ CREATE TABLE
     match_title VARCHAR(250) NOT NULL,
     match_time DATETIME NOT NULL,
     can_bet ENUM('0', '1') DEFAULT '0',
-    can_show ENUM('0', '1') DEFAULT '0',
+    can_show ENUM('0', '1') DEFAULT '1',
     bet_status ENUM('dont_process', 'process', 'completed') DEFAULT 'dont_process',
     max_bet_amount DECIMAL(10, 2) DEFAULT 500000,
     FOREIGN KEY (team_one) REFERENCES teams(id),
@@ -80,7 +80,7 @@ CREATE TABLE
     id INT AUTO_INCREMENT PRIMARY KEY,
     round_name VARCHAR(255) NOT NULL,
     can_bet ENUM('0', '1') DEFAULT '0',
-    can_show ENUM('0', '1') DEFAULT '0',
+    can_show ENUM('0', '1') DEFAULT '1',
     bet_status ENUM('dont_process', 'process', 'completed') DEFAULT 'dont_process',
     max_bet_amount DECIMAL(10, 2) DEFAULT 500000
   );

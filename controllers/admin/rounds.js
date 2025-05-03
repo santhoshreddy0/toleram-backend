@@ -41,8 +41,8 @@ router.post("/", async (req, res) => {
         .json({ message: "Round with the name already exists" });
     }
     const [insertResult] = await pool.execute(
-      "INSERT INTO rounds (round_name, can_bet, max_bet_amount) VALUES (?, ?, ?)",
-      [roundName, "1", maxBetAmount || 500000]
+      "INSERT INTO rounds (round_name, max_bet_amount) VALUES (?, ?)",
+      [roundName, maxBetAmount || 500000]
     );
 
     res.json({
