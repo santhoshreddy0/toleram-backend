@@ -53,7 +53,7 @@ function validateString(string) {
     }
   });
 
-  router.get("/:teamId/players", verifyToken, async (req, res) => {
+  router.get("/:teamId/players", async (req, res) => {
     const { teamId } = req.params;
   
     try {
