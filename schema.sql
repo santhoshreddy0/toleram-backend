@@ -187,7 +187,7 @@ CREATE TABLE comments (
   id INT AUTO_INCREMENT PRIMARY KEY, 
   comment TEXT NOT NULL,         
   user_id INT NOT NULL,      
-  user_name VARCHAR(255) NOT NULL,       
+  user_name VARCHAR(255) DEFAULT NULL,       
   room_id INT NOT NULL,            
   created_at DATETIME,
   likes_count INT DEFAULT 0,

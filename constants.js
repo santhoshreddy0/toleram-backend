@@ -36,5 +36,6 @@ module.exports = {
   DEFAULT_ROLE_MAX_LIMITS,
   LEADERBOARD_KEY,
   LAST_UPDATED_KEY,
+  UPDATE_LEADERBOARD_KEY: "update_leaderboard",
   LEADERBOARD_LIMIT,
 };

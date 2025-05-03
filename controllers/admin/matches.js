@@ -2,8 +2,9 @@ const express = require("express");
 const router = express.Router();
 const pool = require("../../db");
 const { jsonParse } = require("../../utils");
-const { POINTS } = require("../../constants");
-const { updateLeaderboard } = require("../tournament");
+const { POINTS, UPDATE_LEADERBOARD_KEY } = require("../../constants");
+const RedisClient = require("../../redis");
+
 
 function validateName(name) {
   if (!name || name.length < 3) return false;
@@ -429,6 +430,8 @@ router.patch("/:matchId/players/:playerId", async (req, res) => {
     return res.status(400).json({ message: "No fields provided to update" });
   }
 
+  const redis = new RedisClient();
+
   try {
     //Check if the combination of match_id and player_id exists
     const [existingPlayer] = await pool.execute(
@@ -459,7 +462,7 @@ router.patch("/:matchId/players/:playerId", async (req, res) => {
       )} WHERE match_id = ? AND player_id = ?`;
 
       const [updateResult] = await pool.execute(updateQuery, values);
-      await updateLeaderboard();
+      await redis.set(UPDATE_LEADERBOARD_KEY, "yes");
 
       res.json({
         message: "Player data updated successfully",
@@ -484,7 +487,7 @@ router.patch("/:matchId/players/:playerId", async (req, res) => {
           points,
         ]
       );
-      await updateLeaderboard();
+      await redis.set(UPDATE_LEADERBOARD_KEY, "yes");
 
       res.status(201).json({
         message: "Player data added successfully",
@@ -494,6 +497,8 @@ router.patch("/:matchId/players/:playerId", async (req, res) => {
   } catch (error) {
     console.error("Error processing request", error);
     res.status(500).json({ message: "Internal server error" });
+  }finally{
+    await redis.close();
   }
 });
 
