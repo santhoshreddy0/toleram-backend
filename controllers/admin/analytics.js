@@ -3,6 +3,7 @@ const router = express.Router();
 const pool = require("../../db");
 const { jsonParse } = require("../../utils");
 const RedisClient = require("../../redis");
+const { LEADERBOARD_KEY } = require("../../constants");
 
 router.get("/matches/:matchId/bets", async (req, res) => {
   try {
