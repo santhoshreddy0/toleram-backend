@@ -26,7 +26,6 @@ class TransactionError extends Error {
   }
 }
 
-
 function validateTeam(players, userId) {
   // Directly use constants for min and max limits
   const roleMinLimits = DEFAULT_ROLE_MIN_LIMITS;
@@ -135,11 +134,12 @@ function validateTeam(players, userId) {
   return { valid: true, playerIds, playerInserts };
 }
 
-
-
-
 router.post("/createTeam", verifyToken, tournament, async (req, res) => {
-  const { players } = req.body;
+  const { players, teamName } = req.body;
+
+  if (!teamName || typeof teamName !== "string") {
+    return res.status(400).json({ message: "Invalid team name" });
+  }
 
   const userId = req.user.id;
 
@@ -191,6 +191,11 @@ router.post("/createTeam", verifyToken, tournament, async (req, res) => {
       [playerInserts]
     );
 
+    await connection.query(
+      "UPDATE users SET super12_team_name = ? WHERE id = ?",
+      [teamName, userId]
+    );
+
     await connection.commit();
 
     res.json({ message: "Team created successfully" });
@@ -204,14 +209,17 @@ router.post("/createTeam", verifyToken, tournament, async (req, res) => {
 });
 
 router.put("/updateTeam", verifyToken, tournament, async (req, res) => {
-  const { players } = req.body;
+  const { players, teamName } = req.body;
+
+  if (!teamName || typeof teamName !== "string") {
+    return res.status(400).json({ message: "Invalid team name" });
+  }
 
   const userId = req.user.id;
 
   if (!players || !Array.isArray(players)) {
     return res.status(400).json({ message: "Invalid players data" });
   }
-
 
   const teamValidation = validateTeam(players, userId);
 
@@ -253,6 +261,11 @@ router.put("/updateTeam", verifyToken, tournament, async (req, res) => {
       }
     }
 
+    await connection.query(
+      "UPDATE users SET super12_team_name = ? WHERE id = ?",
+      [teamName, userId]
+    );
+
     await connection.commit();
     res.json({ message: "Team updated successfully" });
   } catch (error) {
@@ -284,12 +297,15 @@ router.get("/team", async (req, res) => {
             WHEN dp.role_type = 'captain' THEN 2
             WHEN dp.role_type = 'vice-captain' THEN 1.5
             ELSE 1
-          END AS points
+          END AS points,
+        ANY_VALUE(u.super12_team_name) AS super12_team_name
       FROM dream11_players dp 
       LEFT JOIN match_player_mapping mpm 
         ON dp.player_id = mpm.player_id
       LEFT JOIN players p 
         ON p.id = dp.player_id
+      LEFT JOIN users u 
+        ON dp.user_id = u.id
       WHERE dp.user_id = ?
       GROUP BY dp.player_id, dp.role_type`,
       [userId]
@@ -305,12 +321,14 @@ router.get("/team", async (req, res) => {
 
     const canCreate = !hasTeam && !isStarted;
     const canEdit = hasTeam && !isStarted;
+    const teamName = hasTeam ? teamPlayers[0].super12_team_name : null;
 
     return res.status(200).json({
       team: hasTeam ? teamPlayers : [],
       totalPoints,
       canCreate,
       canEdit,
+      teamName
     });
   } catch (error) {
     console.error("Error executing query", error);
@@ -318,24 +336,29 @@ router.get("/team", async (req, res) => {
   }
 });
 
-
 router.get("/leaderboard", async (req, res) => {
-  const redis = new RedisClient();
   const userId = req.user.id;
 
   try {
-    const topEntries = await redis.zRangeWithScores(LEADERBOARD_KEY, 0, LEADERBOARD_LIMIT - 1);
-    const topUserIds = topEntries.map(entry => parseInt(entry.value, 10));
+    const topEntries = await RedisClient.zRangeWithScores(
+      LEADERBOARD_KEY,
+      0,
+      LEADERBOARD_LIMIT - 1
+    );
+    const topUserIds = topEntries.map((entry) => parseInt(entry.value, 10));
     const isUserInTop = topUserIds.includes(userId);
 
     let completeEntries = [...topEntries];
     let completeUserIds = [...topUserIds];
 
     if (!isUserInTop) {
-      const userRank = await redis.zRevRank(LEADERBOARD_KEY, String(userId));
-      
+      const userRank = await RedisClient.zRevRank(
+        LEADERBOARD_KEY,
+        String(userId)
+      );
+
       if (userRank !== null) {
-        const surroundingUsers = await redis.zRangeWithScores(
+        const surroundingUsers = await RedisClient.zRangeWithScores(
           LEADERBOARD_KEY,
           Math.max(userRank - 1, 0),
           userRank + 1
@@ -357,14 +380,14 @@ router.get("/leaderboard", async (req, res) => {
     }
 
     const placeholders = completeUserIds.map(() => "?").join(", ");
-    const query = `SELECT id, name, email FROM users WHERE id IN (${placeholders})`;
+    const query = `SELECT id, name, email , super12_team_name FROM users WHERE id IN (${placeholders})`;
     const [userRecords] = completeUserIds.length
       ? await pool.execute(query, completeUserIds)
       : [[]];
 
     const leaderboard = completeEntries.map((entry, index) => {
       const id = parseInt(entry.value, 10);
-      const user = userRecords.find(u => u.id === id);
+      const user = userRecords.find((u) => u.id === id);
 
       return {
         userId: id,
@@ -372,19 +395,17 @@ router.get("/leaderboard", async (req, res) => {
         rank: entry.rank || index + 1,
         name: user?.name || null,
         email: user?.email || null,
+        teamName: user?.super12_team_name || null,
       };
     });
 
-    const lastUpdated = await redis.get(LAST_UPDATED_KEY);
+    const lastUpdated = await RedisClient.get(LAST_UPDATED_KEY);
 
     return res.json({ leaderboard, isInTop: isUserInTop, lastUpdated });
   } catch (error) {
     console.error("Error fetching leaderboard:", error);
     return res.status(500).send("Error fetching leaderboard");
-  } finally {
-    await redis.close();
   }
 });
-
 
 module.exports = router;

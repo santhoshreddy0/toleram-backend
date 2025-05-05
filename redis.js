@@ -68,7 +68,7 @@ class RedisClient {
 
   static async zRangeWithScores(key, start, end, options = {}) {
     await this.ensureInitialized();
-    return RedisClient.pool.zRange(key, start, end, { ...options, REV: true });
+    return RedisClient.pool.zRangeWithScores(key, start, end, { ...options, REV: true });
   }
 
   static async zScore(key, member) {

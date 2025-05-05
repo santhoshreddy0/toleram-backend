@@ -566,7 +566,7 @@ router.get("/:matchId/players", async (req, res) => {
     }
 
     const teams = Object.values(teamMap);
-    console.log(teams);
+    
 
     if (teams.length >= 1) {
       res.json({
