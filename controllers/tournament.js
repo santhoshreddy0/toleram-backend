@@ -4,6 +4,9 @@ const pool = require("../db");
 const moment = require("moment");
 const { verifyToken, tournament } = require("../middleware/middleware");
 
+const { UPDATE_LEADERBOARD_KEY } = require("../constants");
+const RedisClient = require("../redis");
+
 async function getTournament() {
   const query = "SELECT * FROM tournaments";
   const [results] = await pool.execute(query);
@@ -23,9 +26,14 @@ async function getTournament() {
 }
 
 async function updateLeaderboard() {
-  await pool.execute(
-    `UPDATE tournaments SET update_leaderboard = 'yes' WHERE id = 1`
-  );
+  try {
+    await RedisClient.set(UPDATE_LEADERBOARD_KEY, "yes");
+    console.log("Leaderboard update flag set to 'yes' in Redis");
+    return;
+  } catch (error) {
+    console.error("Failed to update leaderboard in Redis:", error);
+    return;
+  }
 }
 
 tournamentRouter.get("/", verifyToken, async (req, res) => {

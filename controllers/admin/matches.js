@@ -4,7 +4,7 @@ const pool = require("../../db");
 const { jsonParse } = require("../../utils");
 const { POINTS, UPDATE_LEADERBOARD_KEY } = require("../../constants");
 const RedisClient = require("../../redis");
-
+const { updateLeaderboard } = require("../tournament");
 
 function validateName(name) {
   if (!name || name.length < 3) return false;
@@ -74,13 +74,7 @@ router.post("/", async (req, res) => {
 
     const [insertResult] = await pool.execute(
       "INSERT INTO matches (team_one, team_two, match_title, match_time, max_bet_amount) VALUES (?, ?, ?, ?, ?)",
-      [
-        teamOneId,
-        teamTwoId,
-        matchTitle,
-        matchTimeUtc,
-        maxBetAmount || 500000,
-      ]
+      [teamOneId, teamTwoId, matchTitle, matchTimeUtc, maxBetAmount || 500000]
     );
 
     res.json({
@@ -430,8 +424,6 @@ router.patch("/:matchId/players/:playerId", async (req, res) => {
     return res.status(400).json({ message: "No fields provided to update" });
   }
 
-  const redis = new RedisClient();
-
   try {
     //Check if the combination of match_id and player_id exists
     const [existingPlayer] = await pool.execute(
@@ -462,7 +454,7 @@ router.patch("/:matchId/players/:playerId", async (req, res) => {
       )} WHERE match_id = ? AND player_id = ?`;
 
       const [updateResult] = await pool.execute(updateQuery, values);
-      await redis.set(UPDATE_LEADERBOARD_KEY, "yes");
+      await updateLeaderboard();
 
       res.json({
         message: "Player data updated successfully",
@@ -497,8 +489,6 @@ router.patch("/:matchId/players/:playerId", async (req, res) => {
   } catch (error) {
     console.error("Error processing request", error);
     res.status(500).json({ message: "Internal server error" });
-  }finally{
-    await redis.close();
   }
 });
 
@@ -576,7 +566,7 @@ router.get("/:matchId/players", async (req, res) => {
     }
 
     const teams = Object.values(teamMap);
-    console.log(teams);
+    
 
     if (teams.length >= 1) {
       res.json({
