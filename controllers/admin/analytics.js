@@ -69,8 +69,11 @@ router.get("/users/bets", async (req, res) => {
   const { email } = req.query;
 
   try {
-    const [[user]] = await pool.execute(`SELECT * FROM users WHERE email = ?`, [email]);
-    if (!user) return res.status(404).json({ message: "No user found with the email" });
+    const [[user]] = await pool.execute(`SELECT * FROM users WHERE email = ?`, [
+      email,
+    ]);
+    if (!user)
+      return res.status(404).json({ message: "No user found with the email" });
 
     const userId = user.id;
 
@@ -100,23 +103,27 @@ router.get("/users/bets", async (req, res) => {
       [userId]
     );
 
-    const matchIds = matchBets.map(b => b.match_id);
-    const roundIds = roundBets.map(b => b.round_id);
+    const matchIds = matchBets.map((b) => b.match_id);
+    const roundIds = roundBets.map((b) => b.round_id);
 
     const matchQsQuery = matchIds.length
       ? `SELECT id, match_id, question, options, correct_option
          FROM match_questions
-         WHERE match_id IN (${matchIds.map(() => '?').join(',')})`
+         WHERE match_id IN (${matchIds.map(() => "?").join(",")})`
       : null;
 
     const roundQsQuery = roundIds.length
       ? `SELECT id, round_id, question, options, correct_option
          FROM round_questions
-         WHERE round_id IN (${roundIds.map(() => '?').join(',')})`
+         WHERE round_id IN (${roundIds.map(() => "?").join(",")})`
       : null;
 
-    const [matchQuestions = []] = matchQsQuery ? await pool.execute(matchQsQuery, matchIds) : [[]];
-    const [roundQuestions = []] = roundQsQuery ? await pool.execute(roundQsQuery, roundIds) : [[]];
+    const [matchQuestions = []] = matchQsQuery
+      ? await pool.execute(matchQsQuery, matchIds)
+      : [[]];
+    const [roundQuestions = []] = roundQsQuery
+      ? await pool.execute(roundQsQuery, roundIds)
+      : [[]];
 
     const matchQMap = matchQuestions.reduce((acc, q) => {
       if (!acc[q.match_id]) acc[q.match_id] = [];
@@ -138,44 +145,54 @@ router.get("/users/bets", async (req, res) => {
       }
     };
 
-    const formatBets = (bets, qMap, idKey, titleKey = null, responseTitleKey = null) =>
+    const formatBets = (
+      bets,
+      qMap,
+      idKey,
+      titleKey = null,
+      responseTitleKey = null
+    ) =>
       bets.map((bet) => {
         const questions = qMap[bet[idKey]] || [];
         const answers = parseJSON(bet.answers);
-    
+
         const formattedQs = questions
           .filter((q) => {
             const userAns = answers[q.id];
             return userAns && userAns.option != null;
           })
           .map((q) => {
-            const options = Array.isArray(q.options) ? q.options : parseJSON(q.options);
+            const options = Array.isArray(q.options)
+              ? q.options
+              : parseJSON(q.options);
             const userAns = answers[q.id];
             return {
               questionId: q.id,
               question: q.question,
               options,
               choseOption: userAns.option,
-              correct: q.correct_option && userAns.option == q.correct_option ? "Yes" : "No",
+              correct:
+                q.correct_option && userAns.option == q.correct_option
+                  ? "Yes"
+                  : "No",
               betAmount: userAns.amount || 0,
               correctOption: q.correct_option,
             };
           });
-    
+
         const betData = {
           [idKey]: bet[idKey],
           betAmount: bet.bet_amount,
           points: bet.points || 0,
           bets: formattedQs,
         };
-    
+
         if (titleKey && responseTitleKey) {
           betData[responseTitleKey] = bet[titleKey];
         }
-    
+
         return betData;
       });
-    
 
     const [teamPlayers] = await pool.execute(
       `SELECT
@@ -201,13 +218,31 @@ router.get("/users/bets", async (req, res) => {
 
     const { password, ...userWithoutPassword } = user;
 
+    const userRank = await RedisClient.zRevRank(
+      LEADERBOARD_KEY,
+      String(userId)
+    );
+
     res.status(200).json({
       user: userWithoutPassword,
-      matchBets: formatBets(matchBets, matchQMap, "match_id", "match_title", "matchTitle"),
-      roundBets: formatBets(roundBets, roundQMap, "round_id", "round_title", "roundTitle"),
+      matchBets: formatBets(
+        matchBets,
+        matchQMap,
+        "match_id",
+        "match_title",
+        "matchTitle"
+      ),
+      roundBets: formatBets(
+        roundBets,
+        roundQMap,
+        "round_id",
+        "round_title",
+        "roundTitle"
+      ),
       dream11: {
         team: teamPlayers,
         totalPoints,
+        userRank: userRank !== null ? userRank + 1 : null,
       },
     });
   } catch (err) {
@@ -215,8 +250,6 @@ router.get("/users/bets", async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 });
-
-
 
 router.get("/bets", async (req, res) => {
   try {
@@ -322,14 +355,16 @@ router.delete("/bets/dream11/leaderboard", async (req, res) => {
   try {
     const deleteLeaderboard = await redis.delete(LEADERBOARD_KEY);
     if (deleteLeaderboard) {
-      return res.status(200).json({ message: "Leaderboard deleted successfully" });
+      return res
+        .status(200)
+        .json({ message: "Leaderboard deleted successfully" });
     } else {
       return res.status(500).json({ message: "Failed to delete leaderboard" });
     }
   } catch (err) {
     console.error(err);
     return res.status(500).json({ message: "Internal server error" });
-  }finally{
+  } finally {
     await redis.close();
   }
 });

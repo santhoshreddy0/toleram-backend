@@ -1,74 +1,92 @@
-const { createClient } = require('redis');
+const { createClient } = require("redis");
 
 class RedisClient {
-  constructor() {
-    this.client = createClient({
-      socket: {
-        host: process.env.REDIS_HOST,
-        port: process.env.REDIS_PORT
-      },
-      password: process.env.REDIS_PWD || undefined,
-      username: process.env.REDIS_USERNAME || undefined
-    });
+  static pool = null;
+  static isInitializing = false;
 
-    this.connect();
-  }
+  static async ensureInitialized() {
+    if (!RedisClient.pool && !RedisClient.isInitializing) {
+      RedisClient.isInitializing = true;
 
-  async connect() {
-    try {
-      await this.client.connect();
-      const pong = await this.client.ping();
-      if (pong === 'PONG') {
-        console.log('Redis connection successful');
-        const info = await this.client.info('server');
+      const pool = createClient({
+        socket: {
+          host: process.env.REDIS_HOST,
+          port: process.env.REDIS_PORT,
+        },
+        password: process.env.REDIS_PWD || undefined,
+        username: process.env.REDIS_USERNAME || undefined,
+      });
+
+      pool.on("error", (err) => {
+        console.error("Redis pool error:", err);
+      });
+
+      await pool.connect();
+
+      const pong = await pool.ping();
+      if (pong === "PONG") {
+        console.log("Redis pool connection successful");
+        const info = await pool.info("server");
         const version = info.match(/redis_version:(.+)/)[1].trim();
-        console.log('Redis server version:', version);
+        console.log("Redis server version:", version);
       }
-    } catch (err) {
-      console.error('Redis connection failed:', err);
-      throw err;
+
+      RedisClient.pool = pool;
+      RedisClient.isInitializing = false;
     }
   }
 
-  async get(key) {
-    return await this.client.get(key);
+  static async get(key) {
+    await this.ensureInitialized();
+    return RedisClient.pool.get(key);
   }
 
-  async set(key, value) {
-    return await this.client.set(key, value);
+  static async set(key, value) {
+    await this.ensureInitialized();
+    return RedisClient.pool.set(key, value);
   }
 
-  async delete(key) {
-    return await this.client.del(key);
+  static async delete(key) {
+    await this.ensureInitialized();
+    return RedisClient.pool.del(key);
   }
 
-  async exists(key) {
-    return await this.client.exists(key);
+  static async exists(key) {
+    await this.ensureInitialized();
+    return RedisClient.pool.exists(key);
   }
 
-  async zadd(key, value, score) {
-    return await this.client.zAdd(key, [{ score, value }]);
+  static async zadd(key, value, score) {
+    await this.ensureInitialized();
+    return RedisClient.pool.zAdd(key, [{ score, value }]);
   }
 
-  async zrange(key, start, end) {
-    return await this.client.zRange(key, start, end);
+  static async zrange(key, start, end, options = {}) {
+    await this.ensureInitialized();
+    return RedisClient.pool.zRange(key, start, end, options);
   }
 
-  async zRangeWithScores(key, start, end) {
-    return await this.client.zRangeWithScores(key, start, end, { REV: true });
+  static async zRangeWithScores(key, start, end, options = {}) {
+    await this.ensureInitialized();
+    return RedisClient.pool.zRange(key, start, end, { ...options, REV: true });
   }
 
-  async zScore(key, member) {
-    return await this.client.zScore(key, member);
+  static async zScore(key, member) {
+    await this.ensureInitialized();
+    return RedisClient.pool.zScore(key, member);
   }
 
-  async zRevRank(key, member) {
-    return await this.client.zRevRank(key, member);
+  static async zRevRank(key, member) {
+    await this.ensureInitialized();
+    return RedisClient.pool.zRevRank(key, member);
   }
 
-  async close() {
-    await this.client.quit();
-    console.log('Redis connection closed');
+  static async close() {
+    if (RedisClient.pool) {
+      await RedisClient.pool.quit();
+      RedisClient.pool = null;
+      console.log("Redis pool connection closed");
+    }
   }
 }
 
