@@ -479,7 +479,7 @@ router.patch("/:matchId/players/:playerId", async (req, res) => {
           points,
         ]
       );
-      await redis.set(UPDATE_LEADERBOARD_KEY, "yes");
+      await updateLeaderboard();
 
       res.status(201).json({
         message: "Player data added successfully",
