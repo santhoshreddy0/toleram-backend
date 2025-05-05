@@ -77,7 +77,7 @@ router.get("/:id/questions", async (req, res) => {
     if (rows.length == 0) {
       return res.status(404).json({ message: "Questions not found" });
     }
-    console.log("rows", rows);
+    
     const questions = rows.map((row) => {
       return {
         id: row.id,
