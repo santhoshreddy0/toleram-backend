@@ -351,9 +351,8 @@ GROUP BY
 });
 
 router.delete("/bets/dream11/leaderboard", async (req, res) => {
-  const redis = new RedisClient();
   try {
-    const deleteLeaderboard = await redis.delete(LEADERBOARD_KEY);
+    const deleteLeaderboard = await RedisClient.delete(LEADERBOARD_KEY);
     if (deleteLeaderboard) {
       return res
         .status(200)
@@ -364,8 +363,6 @@ router.delete("/bets/dream11/leaderboard", async (req, res) => {
   } catch (err) {
     console.error(err);
     return res.status(500).json({ message: "Internal server error" });
-  } finally {
-    await redis.close();
   }
 });
 
