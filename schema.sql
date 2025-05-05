@@ -208,3 +208,6 @@ CREATE TABLE tournaments (
   total_credits DECIMAL(10, 2),
   update_leaderboard ENUM('yes', 'no') NOT NULL DEFAULT 'no'
 );
+
+ALTER TABLE tournaments
+ADD COLUMN run_super12_bets ENUM('yes', 'no') DEFAULT 'no';
