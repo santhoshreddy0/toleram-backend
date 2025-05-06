@@ -352,18 +352,13 @@ GROUP BY
 
 router.delete("/bets/dream11/leaderboard", async (req, res) => {
   try {
-    const deleteLeaderboard = await RedisClient.delete(LEADERBOARD_KEY);
-    if (deleteLeaderboard) {
-      return res
-        .status(200)
-        .json({ message: "Leaderboard deleted successfully" });
-    } else {
-      return res.status(500).json({ message: "Failed to delete leaderboard" });
-    }
+    await RedisClient.delete(LEADERBOARD_KEY);
+    return res.status(200).json({ message: "Leaderboard cleared successfully" });
   } catch (err) {
     console.error(err);
     return res.status(500).json({ message: "Internal server error" });
   }
 });
+
 
 module.exports = router;
