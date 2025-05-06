@@ -253,19 +253,25 @@ router.get("/users/bets", async (req, res) => {
 
 router.get("/bets", async (req, res) => {
   try {
-    const query = `
-            SELECT 
-                SUM(match_bets.total_amount) AS total_match_bets,
-                COUNT(DISTINCT match_bets.match_id) AS total_matches,
-                COUNT(DISTINCT match_bets.user_id) AS total_users_in_matches,
-                SUM(round_bets.total_amount) AS total_round_bets,
-                COUNT(DISTINCT round_bets.round_id) AS total_rounds,
-                COUNT(DISTINCT round_bets.user_id) AS total_users_in_rounds,
-                COUNT(DISTINCT COALESCE(match_bets.user_id, round_bets.user_id)) AS total_users_in_tournament
-            FROM match_bets
-            LEFT JOIN round_bets 
-                ON match_bets.user_id = round_bets.user_id
-        `;
+    const query = `WITH match_summary AS (
+    SELECT 
+        SUM(total_amount) AS total_match_bet_amount,
+  			COUNT(*) AS match_bet_count
+    FROM match_bets
+),
+round_summary AS (
+    SELECT 
+        SUM(total_amount) AS total_round_bet_amount,
+  			COUNT(*) AS round_bet_count
+    FROM round_bets
+)
+SELECT 
+    m.total_match_bet_amount,
+    m.match_bet_count,
+		r.total_round_bet_amount,
+		r.round_bet_count
+FROM match_summary m
+CROSS JOIN round_summary r`;
 
     const dream11Query = `
         SELECT COUNT(DISTINCT user_id) AS total_dream11_users
@@ -282,12 +288,12 @@ router.get("/bets", async (req, res) => {
     }
 
     const result = {
-      totalMatchesbetAmount: rows[0].total_match_bets || 0,
+      totalMatchesbetAmount: rows[0].total_match_bet_amount || 0,
       // total_matches: rows[0].total_matches || 0,
-      totalMatchesBets: rows[0].total_users_in_matches || 0,
-      totalRoundsBetAmount: rows[0].total_round_bets || 0,
+      totalMatchesBets: rows[0].match_bet_count || 0,
+      totalRoundsBetAmount: rows[0].total_round_bet_amount || 0,
       // total_rounds: rows[0].total_rounds || 0,
-      totalRoundsBets: rows[0].total_users_in_rounds || 0,
+      totalRoundsBets: rows[0].round_bet_count || 0,
       // total_bet_amount: (rows[0].total_match_bets || 0) + (rows[0].total_round_bets || 0),
       // total_users: rows[0].total_users_in_tournament || 0,
       totalDream11Bets: dream11Rows[0].total_dream11_users || 0,
@@ -353,12 +359,13 @@ GROUP BY
 router.delete("/bets/dream11/leaderboard", async (req, res) => {
   try {
     await RedisClient.delete(LEADERBOARD_KEY);
-    return res.status(200).json({ message: "Leaderboard cleared successfully" });
+    return res
+      .status(200)
+      .json({ message: "Leaderboard cleared successfully" });
   } catch (err) {
     console.error(err);
     return res.status(500).json({ message: "Internal server error" });
   }
 });
-
 
 module.exports = router;

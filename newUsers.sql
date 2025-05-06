@@ -502,3 +502,16 @@ INSERT INTO users (email, password) VALUES ('tpl@500', '848043');
 UPDATE users
 SET name = email;
 
+INSERT INTO
+  `users` (`name`, `email`, `password`)
+VALUES
+  ('Deepak','Deepak','Deepak'),
+  ('Pawan', 'Pawan','Pawan'),
+  ('Adhi', 'Adhi', 'Adhi'),
+  ('Gaurav', 'Gaurav', 'Gaurav'),
+  ('Girish', 'Girish', 'Girish'),
+  ('Adesh', 'Adesh', 'Adesh'),
+  ('Madhukar', 'Madhukar', 'Madhukar'),
+  ('Porus', 'Porus', 'Porus'),
+  ('Dinesh', 'Dinesh', 'Dinesh'),
+  ('Sandeep', 'Sandeep', 'Sandeep');
