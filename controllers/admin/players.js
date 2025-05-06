@@ -25,7 +25,7 @@ router.patch("/:playerId", async (req, res) => {
   }
   if (
     role &&
-    !["all-rounder", "batsman", "bowler", "wicket-keeper"].includes(role)
+    !["all-rounder", "batsman", "bowler", "wicket-keeper" , "impact-player"].includes(role)
   ) {
     return res.status(400).json({ message: "Invalid role for player" });
   }

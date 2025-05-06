@@ -40,6 +40,7 @@ function validateTeam(players, userId) {
     bowler: 0,
     "all-rounder": 0,
     "wicket-keeper": 0,
+    "impact-player": 0,
   };
 
   let femaleCount = 0;

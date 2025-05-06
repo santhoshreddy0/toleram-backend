@@ -211,3 +211,5 @@ CREATE TABLE tournaments (
 
 ALTER TABLE tournaments
 ADD COLUMN run_super12_bets ENUM('yes', 'no') DEFAULT 'no';
+
+ALTER TABLE `players` CHANGE `player_role` `player_role` ENUM('all-rounder','batsman','bowler','wicket-keeper','impact-player') CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL;

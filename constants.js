@@ -13,6 +13,7 @@ const DEFAULT_ROLE_MIN_LIMITS = {
   bowler: 3,
   "all-rounder": 2,
   "wicket-keeper": 0,
+  'impact-player': 0,
 };
 
 const DEFAULT_ROLE_MAX_LIMITS = {
@@ -20,6 +21,7 @@ const DEFAULT_ROLE_MAX_LIMITS = {
   bowler: 5,
   "all-rounder": 4,
   "wicket-keeper": 12,
+  "impact-player": 12,
 };
 
 
