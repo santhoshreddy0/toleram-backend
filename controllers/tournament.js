@@ -2,7 +2,7 @@ const express = require("express");
 const tournamentRouter = express.Router();
 const pool = require("../db");
 const moment = require("moment");
-const { verifyToken, tournament } = require("../middleware/middleware");
+const { verifyToken, tournament, verifyRole } = require("../middleware/middleware");
 
 const { UPDATE_LEADERBOARD_KEY } = require("../constants");
 const RedisClient = require("../redis");
@@ -49,7 +49,7 @@ tournamentRouter.get("/", verifyToken, async (req, res) => {
   }
 });
 
-tournamentRouter.patch('/super12', async (req, res) => {
+tournamentRouter.patch('/super12', verifyToken, verifyRole('admin'), async (req, res) => {
   const { status } = req.body; 
 
   if (!['yes', 'no'].includes(status)) {
