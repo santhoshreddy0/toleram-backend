@@ -329,7 +329,7 @@ router.get("/team", async (req, res) => {
       totalPoints,
       canCreate,
       canEdit,
-      teamName
+      teamName,
     });
   } catch (error) {
     console.error("Error executing query", error);
@@ -373,7 +373,7 @@ router.get("/leaderboard", async (req, res) => {
             completeEntries.push({
               value: entry.value,
               score: entry.score,
-              rank: userRank + i - 1,
+              rank: userRank + i, //userRank is 0-based starting from 0, actual rank is userRank + 1
             });
           }
         }
