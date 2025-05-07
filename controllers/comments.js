@@ -2,15 +2,15 @@ const express = require("express");
 const router = express.Router();
 const pool = require("../db");
 const { verifyToken } = require("../middleware/middleware");
-const crypto = require('crypto');
+const crypto = require("crypto");
 const moment = require("moment");
 
 function validateString(string) {
-    if (!string || string.trim().length === 0) return false;
-    return true;
+  if (!string || string.trim().length === 0) return false;
+  return true;
 }
 
-router.get('/getRoom/:roomName', verifyToken, async (req, res) => {
+router.get("/getRoom/:roomName", verifyToken, async (req, res) => {
   const { roomName } = req.params;
 
   if (!roomName) {
@@ -28,7 +28,7 @@ router.get('/getRoom/:roomName', verifyToken, async (req, res) => {
       const room = roomRows[0];
       return res.status(200).json({
         id: room.id,
-        name: room.name
+        name: room.name,
       });
     } else {
       // If the room doesn't exist, create a new room
@@ -40,7 +40,7 @@ router.get('/getRoom/:roomName', verifyToken, async (req, res) => {
 
       return res.status(201).json({
         id: newRoomId,
-        name: roomName
+        name: roomName,
       });
     }
   } catch (error) {
@@ -49,67 +49,66 @@ router.get('/getRoom/:roomName', verifyToken, async (req, res) => {
   }
 });
 
-
 router.post("/rooms/:roomdId", verifyToken, async (req, res) => {
-    const { roomdId } = req.params;
-    const { comment } = req.body;
-    const user_id = req.user.id;
-    const user_name = req.user.name;
+  const { roomdId } = req.params;
+  const { comment } = req.body;
+  const user_id = req.user.id;
 
-    const created_at = moment.utc().format('YYYY-MM-DD HH:mm:ss');
+  const created_at = moment.utc().format("YYYY-MM-DD HH:mm:ss");
 
-    if (!validateString(comment)) {
-        return res.status(400).json({ message: "Comment cannot be empty" });
+  if (!validateString(comment)) {
+    return res.status(400).json({ message: "Comment cannot be empty" });
+  }
+
+  if (!roomdId) {
+    return res.status(400).json({ message: "Room ID is required" });
+  }
+
+  try {
+    const [roomRows] = await pool.execute("SELECT * FROM rooms WHERE id = ?", [
+      roomdId,
+    ]);
+
+    if (roomRows.length === 0) {
+      return res.status(404).json({ message: "Room not found" });
     }
 
-    if (!roomdId) {
-        return res.status(400).json({ message: "Room ID is required" });
-    }
+    const [insertComment] = await pool.execute(
+      "INSERT INTO comments (room_id, user_id, comment, created_at) VALUES (?, ?, ?, ?)",
+      [roomdId, user_id, comment, created_at]
+    );
 
-    try {
-        const [roomRows] = await pool.execute(
-            "SELECT * FROM rooms WHERE id = ?",
-            [roomdId]
-        );
-
-        if (roomRows.length === 0) {
-            return res.status(404).json({ message: "Room not found" });
-        }
-
-        const [insertComment] = await pool.execute(
-            "INSERT INTO comments (room_id, user_id, user_name, comment, created_at, likes_count) VALUES (?, ?, ?, ?, ?, ?)",
-            [roomdId, user_id, user_name, comment, created_at, 0]
-        );
-
-        res.status(200).json({ message: "Comment added successfully", id: insertComment.insertId });
-
-    } catch (error) {
-        console.error("Error executing query", error);
-        res.status(500).json({ message: "Internal server error" });
-    }
+    res.status(200).json({
+      message: "Comment added successfully",
+      id: insertComment.insertId,
+    });
+  } catch (error) {
+    console.error("Error executing query", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
 });
 
-
-
-
 const ITEMS_PER_PAGE = parseInt(process.env.ITEMS_PER_PAGE, 10) || 50;
-const SECRET_KEY = crypto.createHash('sha256').update(process.env.SECRET_KEY).digest();
+const SECRET_KEY = crypto
+  .createHash("sha256")
+  .update(process.env.SECRET_KEY)
+  .digest();
 const IV_LENGTH = 16;
 
 function encryptText(text) {
   const iv = crypto.randomBytes(IV_LENGTH);
-  const cipher = crypto.createCipheriv('aes-256-cbc', SECRET_KEY, iv);
-  let encrypted = cipher.update(text, 'utf8', 'hex');
-  encrypted += cipher.final('hex');
-  return iv.toString('hex') + ':' + encrypted;
+  const cipher = crypto.createCipheriv("aes-256-cbc", SECRET_KEY, iv);
+  let encrypted = cipher.update(text, "utf8", "hex");
+  encrypted += cipher.final("hex");
+  return iv.toString("hex") + ":" + encrypted;
 }
 
 function decryptText(encryptedText) {
-  const [ivHex, encrypted] = encryptedText.split(':');
-  const iv = Buffer.from(ivHex, 'hex');
-  const decipher = crypto.createDecipheriv('aes-256-cbc', SECRET_KEY, iv);
-  let decrypted = decipher.update(encrypted, 'hex', 'utf8');
-  decrypted += decipher.final('utf8');
+  const [ivHex, encrypted] = encryptedText.split(":");
+  const iv = Buffer.from(ivHex, "hex");
+  const decipher = crypto.createDecipheriv("aes-256-cbc", SECRET_KEY, iv);
+  let decrypted = decipher.update(encrypted, "hex", "utf8");
+  decrypted += decipher.final("utf8");
   return decrypted;
 }
 
@@ -130,20 +129,29 @@ router.get("/rooms/:roomId", async (req, res) => {
     }
   }
 
-  if (isNaN(roomId)){
+  if (isNaN(roomId)) {
     return res.status(400).json({ message: "Invalid room id" });
   }
 
   try {
-    let query = "SELECT * FROM comments WHERE room_id = ? ORDER BY created_at DESC LIMIT ?";
-    let params = [roomId, ITEMS_PER_PAGE];
+    let query = `
+  SELECT comments.*, users.name, users.email
+  FROM comments
+  JOIN users ON comments.user_id = users.id
+  WHERE comments.room_id = ?
+`;
+
+    let params = [roomId];
 
     if (lastSeenId > 0) {
-      query = "SELECT * FROM comments WHERE room_id = ? AND id < ? ORDER BY created_at DESC LIMIT ?";
+      query += " AND comments.id < ? ORDER BY comments.created_at DESC LIMIT ?";
       params = [roomId, lastSeenId, ITEMS_PER_PAGE];
     } else if (firstSeenId > 0) {
-      query = "SELECT * FROM comments WHERE room_id = ? AND id > ? ORDER BY created_at DESC LIMIT ?";
+      query += " AND comments.id > ? ORDER BY comments.created_at DESC LIMIT ?";
       params = [roomId, firstSeenId, ITEMS_PER_PAGE];
+    } else {
+      query += " ORDER BY comments.created_at DESC LIMIT ?";
+      params = [roomId, ITEMS_PER_PAGE];
     }
 
     const [rows] = await pool.query(query, params);
@@ -158,14 +166,20 @@ router.get("/rooms/:roomId", async (req, res) => {
     // If there are more comments after this batch, send nextToken
     if (rows.length === ITEMS_PER_PAGE) {
       nextToken = encryptText(
-        JSON.stringify({ lastSeenId: rows[rows.length - 1].id , firstSeenId: rows[0].id })
+        JSON.stringify({
+          lastSeenId: rows[rows.length - 1].id,
+          firstSeenId: rows[0].id,
+        })
       );
     }
 
     // If there are more comments before this batch, send prevToken
     if (firstSeenId > 0) {
       prevToken = encryptText(
-        JSON.stringify({ firstSeenId: rows[0].id , lastSeenId: rows[rows.length - 1].id})
+        JSON.stringify({
+          firstSeenId: rows[0].id,
+          lastSeenId: rows[rows.length - 1].id,
+        })
       );
     }
 
@@ -179,8 +193,5 @@ router.get("/rooms/:roomId", async (req, res) => {
     return res.status(500).json({ message: "Internal server error" });
   }
 });
-
-
-
 
 module.exports = router;

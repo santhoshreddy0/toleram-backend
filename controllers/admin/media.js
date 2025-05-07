@@ -1,8 +1,8 @@
 const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
 const express = require("express");
 const router = express.Router();
-const pool = require("../db");
-const { verifyRole } = require("../middleware/middleware");
+const pool = require("../../db");
+const { verifyRole } = require("../../middleware/middleware");
 const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
 const { v4: uuidv4 } = require('uuid');
 

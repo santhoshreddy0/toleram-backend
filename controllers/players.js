@@ -13,7 +13,7 @@ function validateString(string) {
   return true;
 }
 
-  router.get("/", verifyToken, async (req, res) => {
+  router.get("/", async (req, res) => {
     try {
       const [players] = await pool.execute("SELECT p.* , t.team_name , t.team_logo FROM players p LEFT JOIN teams t ON p.team_id = t.id");
   
@@ -30,7 +30,7 @@ function validateString(string) {
     }
   });
   
-  router.get("/:playerId", verifyToken, async (req, res) => {
+  router.get("/:playerId", async (req, res) => {
     const { playerId } = req.params;
   
     try {
