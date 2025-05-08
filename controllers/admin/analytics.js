@@ -312,6 +312,7 @@ router.get("/match/bets", async (req, res) => {
     mt.id AS matchId,
     mt.match_title AS matchTitle,
     COALESCE(SUM(m.total_amount), 0) AS totalAmount,
+    COALESCE(SUM(m.points), 0) AS totalPoints,
     COALESCE(COUNT(DISTINCT m.user_id), 0) AS totalBets
 FROM 
     matches mt
@@ -337,6 +338,7 @@ router.get("/round/bets", async (req, res) => {
     rd.id AS roundId,
     rd.round_name AS roundName,
     COALESCE(SUM(r.total_amount), 0) AS totalAmount,
+    COALESCE(SUM(r.points), 0) AS totalPoints,
     COALESCE(COUNT(DISTINCT r.user_id), 0) AS totalBets
 FROM 
     rounds rd
