@@ -10,7 +10,6 @@ function jsonParse(input) {
   // If it's already an object, return it as is
   return input;
 }
-
 module.exports = {
   jsonParse,
 };

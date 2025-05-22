@@ -5,7 +5,6 @@ const { verifyToken, verifyRole } = require("../middleware/middleware");
 const moment = require("moment");
 const { jsonParse } = require("../utils");
 
-
 router.get("/", async (req, res) => {
   try {
     // Retrieve all available matches from the matches table
@@ -78,7 +77,7 @@ router.get("/:id/questions", async (req, res) => {
     if (rows.length == 0) {
       return res.status(404).json({ message: "Questions not found" });
     }
-    console.log("rows", rows);
+    
     const questions = rows.map((row) => {
       return {
         id: row.id,
@@ -154,6 +153,8 @@ router.put("/:id/bet", verifyToken, async (req, res) => {
         .status(400)
         .json({ message: "Betting is closed for this match" });
     }
+    const matchBetMax = match.max_bet_amount || 500000;
+    const matchQuestionBetMin = 0;
 
     const quesstionQuery = "Select id from match_questions where match_id = ?";
     const [questionRows] = await pool.execute(quesstionQuery, [match_id]);
@@ -165,12 +166,30 @@ router.put("/:id/bet", verifyToken, async (req, res) => {
     }
 
     const questionMap = {};
+    let totalAmount = 0;
     questionRows.forEach((row) => {
       let data = {};
+      if (
+        bets[row.id]?.option &&
+        (bets[row.id].amount == null ||
+          bets[row.id].amount < matchQuestionBetMin)
+      ) {
+        return res.status(400).json({
+          message: `Bet amount for the question must be greater than ${matchQuestionBetMin}`,
+        });
+      }
+
       data["option"] = bets[row.id]?.option || null;
       data["amount"] = bets[row.id]?.amount || 0;
+      totalAmount += data.amount;
       questionMap[row.id] = data;
     });
+
+    if (totalAmount > matchBetMax) {
+      return res.status(400).json({
+        message: `Total bet amount (${totalAmount}) exceeds round limit of ${matchBetMax}`,
+      });
+    }
 
     const rowCheckingQuery =
       "SELECT * FROM match_bets WHERE user_id = ? AND match_id = ?";
@@ -179,18 +198,20 @@ router.put("/:id/bet", verifyToken, async (req, res) => {
 
     if (existing_bets.length === 0) {
       const postQuery =
-        "INSERT INTO match_bets (user_id, match_id,answers) VALUES (?, ? , ?) ";
+        "INSERT INTO match_bets (user_id, match_id,answers, total_amount) VALUES (?, ? , ?, ?) ";
       await pool.query(postQuery, [
         user_id,
         match_id,
         JSON.stringify(questionMap),
+        totalAmount,
       ]);
       return res.status(200).json({ message: "Bet placed successfully" });
     } else {
       const putQuery =
-        "UPDATE match_bets SET answers = ? WHERE user_id = ? AND match_id = ?";
+        "UPDATE match_bets SET answers = ?, total_amount = ? WHERE user_id = ? AND match_id = ?";
       await pool.query(putQuery, [
         JSON.stringify(questionMap),
+        totalAmount,
         user_id,
         match_id,
       ]);
